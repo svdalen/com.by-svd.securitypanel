@@ -1048,6 +1048,7 @@
   var q = new URLSearchParams(location.search);
   var dark = q.get('dark') === '1';
   if (dark) document.body.classList.add('homey-dark-mode');
+  if (q.get('w')) { document.documentElement.style.width = q.get('w') + 'px'; document.documentElement.style.height = (q.get('h') || 420) + 'px'; }
   var now = Date.now();
   var sensors = [
     {id:'d1:alarm_contact',deviceId:'d1',name:'Front door',capability:'alarm_contact',modes:['armed','partially_armed'],enabled:true,active:true,zone:'Hal',lastActiveAt:now-130000},
