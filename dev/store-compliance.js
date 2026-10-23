@@ -80,7 +80,7 @@ J('.homeycompose/capabilities/alarm_pending.json', cap);
 // Manifest: tagline, support, tags
 const a = R('.homeycompose/app.json');
 a.description = en('Your own alarm system with a code keypad, delays and sensors');
-a.support = 'mailto:svdalen@gmail.com';
+a.support = 'mailto:homey@refract.one';
 a.tags = en(['alarm', 'security', 'keypad', 'pin', 'ring', 'panel', 'arm', 'disarm', 'siren']);
 J('.homeycompose/app.json', a);
 
