@@ -1,6 +1,6 @@
 {
   "name": "com.by-svd.securitypanel",
-  "version": "0.1.42",
+  "version": "1.0.0",
   "description": "Homey alarm system with delays, Homey sensors as detectors, PIN users and a keypad widget",
   "main": "app.js",
   "private": true,
