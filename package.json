@@ -22,5 +22,13 @@
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "homey": "^4.6.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/svdalen/homey-security-panel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/svdalen/homey-security-panel/issues"
+  },
+  "homepage": "https://github.com/svdalen/homey-security-panel#readme"
 }
