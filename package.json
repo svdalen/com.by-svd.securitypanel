@@ -1,5 +1,5 @@
 {
-  "name": "nl.svdalen.securitypanel",
+  "name": "com.by-svd.securitypanel",
   "version": "0.1.41",
   "description": "Homey alarm system with delays, Homey sensors as detectors, PIN users and a keypad widget",
   "main": "app.js",
@@ -25,10 +25,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/svdalen/homey-security-panel.git"
+    "url": "git+https://github.com/svdalen/com.by-svd.securitypanel.git"
   },
   "bugs": {
-    "url": "https://github.com/svdalen/homey-security-panel/issues"
+    "url": "https://github.com/svdalen/com.by-svd.securitypanel/issues"
   },
-  "homepage": "https://github.com/svdalen/homey-security-panel#readme"
+  "homepage": "https://github.com/svdalen/com.by-svd.securitypanel#readme",
+  "license": "MIT"
 }
