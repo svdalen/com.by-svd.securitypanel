@@ -1,0 +1,44 @@
+{
+  "title": {
+    "en": "Handle a keypad entry"
+  },
+  "titleFormatted": {
+    "en": "Handle keypad entry with code [[pin]], key [[key]] from keypad [[keypad]]"
+  },
+  "hint": {
+    "en": "Connect this to your keypad's code-entered trigger and pass its code and key tags. Keys such as DISARM_ALL, ARM_HOME, ARM_AWAY, ENTER and CANCEL, or Disarm, Home and Away, are understood. The code is checked against the users, including the panic digits."
+  },
+  "args": [
+    {
+      "name": "pin",
+      "type": "text",
+      "title": {
+        "en": "Code"
+      },
+      "placeholder": {
+        "en": "[[pincode]] tag"
+      }
+    },
+    {
+      "name": "key",
+      "type": "text",
+      "title": {
+        "en": "Key"
+      },
+      "placeholder": {
+        "en": "[[actionkey]] tag"
+      }
+    },
+    {
+      "name": "keypad",
+      "type": "text",
+      "title": {
+        "en": "Keypad name (for lockouts)"
+      },
+      "placeholder": {
+        "en": "Hallway"
+      },
+      "required": false
+    }
+  ]
+}

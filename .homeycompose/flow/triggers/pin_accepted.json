@@ -1,0 +1,27 @@
+{
+  "title": {
+    "en": "A valid code was entered"
+  },
+  "tokens": [
+    {
+      "name": "user",
+      "type": "string",
+      "title": {
+        "en": "User"
+      },
+      "example": {
+        "en": "Alice"
+      }
+    },
+    {
+      "name": "action",
+      "type": "string",
+      "title": {
+        "en": "Action"
+      },
+      "example": {
+        "en": "disarmed"
+      }
+    }
+  ]
+}

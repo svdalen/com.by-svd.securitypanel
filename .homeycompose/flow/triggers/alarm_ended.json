@@ -1,0 +1,40 @@
+{
+  "title": {
+    "en": "The alarm stopped sounding"
+  },
+  "tokens": [
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source"
+      },
+      "example": {
+        "en": "widget"
+      }
+    },
+    {
+      "name": "user",
+      "type": "string",
+      "title": {
+        "en": "User"
+      },
+      "example": {
+        "en": "Alice"
+      }
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "title": {
+        "en": "Reason"
+      },
+      "example": {
+        "en": "disarmed"
+      }
+    }
+  ],
+  "hint": {
+    "en": "The alarm ended by disarming, by silencing it, or because the alarm duration ran out."
+  }
+}

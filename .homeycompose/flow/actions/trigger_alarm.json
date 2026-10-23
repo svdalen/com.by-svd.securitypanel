@@ -1,0 +1,20 @@
+{
+  "title": {
+    "en": "Sound the alarm"
+  },
+  "titleFormatted": {
+    "en": "Sound the alarm because [[reason]]"
+  },
+  "args": [
+    {
+      "name": "reason",
+      "type": "text",
+      "title": {
+        "en": "Reason"
+      },
+      "placeholder": {
+        "en": "Panic button"
+      }
+    }
+  ]
+}

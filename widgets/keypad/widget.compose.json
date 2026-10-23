@@ -1,0 +1,116 @@
+{
+  "name": {
+    "en": "Alarm keypad"
+  },
+  "height": 420,
+  "transparent": false,
+  "settings": [
+    {
+      "id": "showPartial",
+      "type": "checkbox",
+      "title": {
+        "en": "Show the Partially armed (Home) button"
+      },
+      "value": true
+    },
+    {
+      "id": "showOpenSensors",
+      "type": "checkbox",
+      "title": {
+        "en": "Show the sensor list while disarmed and arming"
+      },
+      "value": true,
+      "hint": {
+        "en": "Off: a plain status panel instead of the list of sensors with their open/closed state."
+      }
+    },
+    {
+      "id": "pinLength",
+      "type": "dropdown",
+      "title": {
+        "en": "Submit automatically after"
+      },
+      "hint": {
+        "en": "Manual: the user presses the action button after entering the PIN."
+      },
+      "value": "manual",
+      "values": [
+        {
+          "id": "manual",
+          "title": {
+            "en": "Manual (press action button)"
+          }
+        },
+        {
+          "id": "4",
+          "title": {
+            "en": "4 digits"
+          }
+        },
+        {
+          "id": "6",
+          "title": {
+            "en": "6 digits"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sound",
+      "type": "dropdown",
+      "title": {
+        "en": "Sounds from this tablet/phone"
+      },
+      "hint": {
+        "en": "Browsers only allow sound after the screen has been touched once since the dashboard loaded. Keep the dashboard open; a background dashboard is muted."
+      },
+      "value": "alarm",
+      "values": [
+        {
+          "id": "off",
+          "title": {
+            "en": "Off"
+          }
+        },
+        {
+          "id": "alarm",
+          "title": {
+            "en": "Alarm only"
+          }
+        },
+        {
+          "id": "entry",
+          "title": {
+            "en": "Alarm and entry-delay beeps"
+          }
+        },
+        {
+          "id": "all",
+          "title": {
+            "en": "Alarm, entry and exit-delay beeps"
+          }
+        }
+      ]
+    },
+    {
+      "id": "volume",
+      "type": "number",
+      "title": {
+        "en": "Volume (%)"
+      },
+      "value": 80,
+      "min": 1,
+      "max": 100
+    }
+  ],
+  "api": {
+    "getStatus": {
+      "method": "GET",
+      "path": "/status"
+    },
+    "postKeypad": {
+      "method": "POST",
+      "path": "/keypad"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "title": {
+    "en": "Arming was blocked by open sensors"
+  },
+  "tokens": [
+    {
+      "name": "mode",
+      "type": "string",
+      "title": {
+        "en": "Mode"
+      },
+      "example": {
+        "en": "armed"
+      }
+    },
+    {
+      "name": "sensors",
+      "type": "string",
+      "title": {
+        "en": "Sensors"
+      },
+      "example": {
+        "en": "Front door, Kitchen window"
+      }
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source"
+      },
+      "example": {
+        "en": "widget"
+      }
+    },
+    {
+      "name": "user",
+      "type": "string",
+      "title": {
+        "en": "User"
+      },
+      "example": {
+        "en": "Alice"
+      }
+    },
+    {
+      "name": "stage",
+      "type": "string",
+      "title": {
+        "en": "Stage"
+      },
+      "example": {
+        "en": "end"
+      }
+    }
+  ],
+  "hint": {
+    "en": "With the open-sensor policy set to block, a sensor was still open when the exit delay ended. The system stays in its previous mode."
+  }
+}

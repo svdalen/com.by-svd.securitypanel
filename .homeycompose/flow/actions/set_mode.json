@@ -1,0 +1,40 @@
+{
+  "title": {
+    "en": "Set the mode"
+  },
+  "titleFormatted": {
+    "en": "Set the mode to [[mode]]"
+  },
+  "hint": {
+    "en": "Arming goes through the sensor check and exit delay. No code is needed from a flow."
+  },
+  "args": [
+    {
+      "name": "mode",
+      "type": "dropdown",
+      "title": {
+        "en": "Mode"
+      },
+      "values": [
+        {
+          "id": "disarmed",
+          "title": {
+            "en": "Disarmed"
+          }
+        },
+        {
+          "id": "armed",
+          "title": {
+            "en": "Armed"
+          }
+        },
+        {
+          "id": "partially_armed",
+          "title": {
+            "en": "Partially armed"
+          }
+        }
+      ]
+    }
+  ]
+}

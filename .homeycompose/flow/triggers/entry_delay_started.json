@@ -1,0 +1,30 @@
+{
+  "title": {
+    "en": "The alarm was triggered"
+  },
+  "hint": {
+    "en": "A delayed sensor tripped while armed and the entry countdown is running. The siren does not sound yet; disarm before the countdown ends to prevent it."
+  },
+  "tokens": [
+    {
+      "name": "sensor",
+      "type": "string",
+      "title": {
+        "en": "Sensor"
+      },
+      "example": {
+        "en": "Front door"
+      }
+    },
+    {
+      "name": "seconds",
+      "type": "number",
+      "title": {
+        "en": "Seconds"
+      },
+      "example": {
+        "en": "30"
+      }
+    }
+  ]
+}

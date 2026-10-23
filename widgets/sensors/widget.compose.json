@@ -1,0 +1,83 @@
+{
+  "name": {
+    "en": "Sensor status"
+  },
+  "height": 420,
+  "transparent": false,
+  "settings": [
+    {
+      "id": "hideWhenArmed",
+      "type": "checkbox",
+      "title": {
+        "en": "Hide sensor states while armed"
+      },
+      "hint": {
+        "en": "Warning: everyone who can see this dashboard sees which sensors are open. Do not put this widget on the dashboard next to the alarm keypad; use it on your phone or in a private dashboard. Switch this off only if you want to watch the sensors while the alarm is armed."
+      },
+      "value": true
+    },
+    {
+      "id": "height",
+      "type": "dropdown",
+      "title": {
+        "en": "Widget height"
+      },
+      "hint": {
+        "en": "A fixed height scrolls when there are more sensors than fit. Fit shows every sensor and grows with the list."
+      },
+      "value": "420",
+      "values": [
+        {
+          "id": "420",
+          "title": {
+            "en": "Normal"
+          }
+        },
+        {
+          "id": "640",
+          "title": {
+            "en": "Tall"
+          }
+        },
+        {
+          "id": "auto",
+          "title": {
+            "en": "Fit to the sensors"
+          }
+        }
+      ]
+    },
+    {
+      "id": "zone",
+      "type": "autocomplete",
+      "title": {
+        "en": "Zone"
+      },
+      "hint": {
+        "en": "Only the sensors in this zone. Leave empty for all sensors of the alarm."
+      }
+    },
+    {
+      "id": "showModes",
+      "type": "checkbox",
+      "title": {
+        "en": "Show the Away/Home membership of each sensor"
+      },
+      "value": false
+    },
+    {
+      "id": "showExcluded",
+      "type": "checkbox",
+      "title": {
+        "en": "Show excluded sensors too"
+      },
+      "value": false
+    }
+  ],
+  "api": {
+    "getStatus": {
+      "method": "GET",
+      "path": "/status"
+    }
+  }
+}

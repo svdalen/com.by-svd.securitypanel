@@ -1,0 +1,30 @@
+{
+  "title": {
+    "en": "Disarmed"
+  },
+  "tokens": [
+    {
+      "name": "user",
+      "type": "string",
+      "title": {
+        "en": "User"
+      },
+      "example": {
+        "en": "Alice"
+      }
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source"
+      },
+      "example": {
+        "en": "widget"
+      }
+    }
+  ],
+  "hint": {
+    "en": "The panel was disarmed, or an exit delay was cancelled."
+  }
+}

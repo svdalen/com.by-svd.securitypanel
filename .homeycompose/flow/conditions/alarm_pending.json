@@ -1,0 +1,8 @@
+{
+  "title": {
+    "en": "The alarm !{{is|is not}} triggered"
+  },
+  "hint": {
+    "en": "True while the entry countdown runs, before the siren sounds."
+  }
+}

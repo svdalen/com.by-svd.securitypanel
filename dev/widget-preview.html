@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style>
+    /* Theme-neutral surfaces: translucent greys read correctly on both the
+       light and the dark dashboard background, text inherits the page colour,
+       and every Homey variable has a fallback. */
+    :root {
+      --kp-armed: var(--homey-color-red, #ff3b30);
+      --kp-partial: var(--homey-color-orange, #ff9500);
+      --kp-disarmed: var(--homey-color-green, #34c759);
+      --kp-alarm: var(--homey-color-red, #ff3b30);
+      --kp-key-bg: rgba(120, 120, 128, .14);
+      --kp-key-bg-active: rgba(120, 120, 128, .26);
+      --kp-faint: rgba(120, 120, 128, .12);
+      --kp-radius: var(--homey-border-radius-default, 14px);
+      --kp-gap: var(--homey-su-2, 8px);
+      --kp-fs-small: var(--homey-font-size-small, 12px);
+      --kp-fs-default: var(--homey-font-size-default, 14px);
+      --kp-fs-large: var(--homey-font-size-large, 17px);
+      --kp-fs-xlarge: var(--homey-font-size-xlarge, 22px);
+      --kp-fs-xxlarge: var(--homey-font-size-xxlarge, 30px);
+      --kp-white: #fff;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+    html, body, button { touch-action: manipulation; }
+    html, body { height: 100%; }
+    body { margin: 0; color: var(--homey-text-color, inherit); overscroll-behavior: contain; }
+    svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* The widget never changes size: every view lives inside the same box
+       and long sensor lists scroll inside it, so the dashboard never reflows. */
+    .kp {
+      display: flex;
+      flex-direction: column;
+      gap: var(--kp-gap);
+      height: 100%;
+      user-select: none;
+      border-radius: var(--kp-radius);
+      color: inherit;
+      overflow: hidden;
+      position: relative;
+      padding: 0;
+    }
+
+    /* Which blocks each view shows */
+    .kp-status, .kp-hero, .kp-list, .kp-pin, .kp-grid, .kp-strip { display: none; }
+    .kp[data-view="list"] .kp-status, .kp[data-view="list"] .kp-list,
+    .kp[data-view="arming"] .kp-status, .kp[data-view="arming"] .kp-list,
+    .kp[data-view="plain"] .kp-status, .kp[data-view="plain"] .kp-hero,
+    .kp[data-view="armed"] .kp-hero, .kp[data-view="armed"] .kp-strip,
+    .kp[data-view="alarm"] .kp-hero, .kp[data-view="alarm"] .kp-strip,
+    .kp[data-view="keypad"] .kp-status, .kp[data-view="keypad"] .kp-pin { display: flex; }
+    .kp[data-view="keypad"] .kp-grid { display: grid; }
+
+    /* ---------------------------------------------------------- header */
+    .kp-status {
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: var(--kp-radius);
+      background: var(--kp-key-bg);
+      color: inherit;
+      min-height: 62px;
+      flex: 0 0 auto;
+      transition: background .2s;
+    }
+    /* the header carries the state colour (variant D) */
+    .kp-status[data-tone="green"] { background: rgba(52, 199, 89, .12); }
+    .kp-status[data-tone="green"] .kp-sub { color: #1e8f3f; opacity: .85; }
+    .homey-dark-mode .kp-status[data-tone="green"] .kp-sub, body.homey-dark-mode .kp-status[data-tone="green"] .kp-sub { color: #4cd964; }
+    .kp-status[data-tone="red"] { background: rgba(255, 59, 48, .12); }
+    .kp-status[data-tone="amber"] { background: rgba(255, 149, 0, .14); }
+    .kp-status[data-tone="grey"] { background: var(--kp-key-bg); }
+    .kp-badge {
+      width: 38px; height: 38px; border-radius: 12px; flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(52, 199, 89, .16); color: var(--kp-disarmed);
+    }
+    .kp-badge svg { width: 20px; height: 20px; stroke-width: 2.2; }
+    .kp-badge.red { background: rgba(255, 59, 48, .16); color: var(--kp-armed); }
+    .kp-badge.amber { background: rgba(255, 149, 0, .18); color: var(--kp-partial); }
+    .kp-badge.grey { background: var(--kp-faint); color: inherit; }
+    .kp[data-phase="arming"] .kp-status { background: rgba(255, 149, 0, .14); }
+    .kp[data-phase="entry"] .kp-status { background: rgba(255, 59, 48, .14); }
+    .kp-status-text { flex: 1 1 auto; min-width: 0; }
+    .kp-title { font-weight: 700; font-size: var(--kp-fs-large); line-height: 1.15; letter-spacing: -.01em; }
+    .kp-sub { font-size: var(--kp-fs-small); opacity: .65; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* countdown ring in the header */
+    .kp-ring { position: relative; width: 44px; height: 44px; flex: 0 0 auto; display: none; }
+    .kp[data-phase="arming"] .kp-ring, .kp[data-phase="entry"] .kp-ring { display: block; }
+    .kp-ring svg { position: absolute; inset: 0; width: 44px; height: 44px; transform: rotate(-90deg); }
+    .kp-ring circle { fill: none; stroke-width: 4; }
+    .kp-ring .track { stroke: var(--kp-faint); }
+    .kp-ring .val { stroke: var(--kp-partial); stroke-dasharray: 125.66; stroke-dashoffset: 0; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+    .kp[data-phase="entry"] .kp-ring .val { stroke: var(--kp-armed); }
+    .kp-ring b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .kp-elapsed { display: none; font-variant-numeric: tabular-nums; font-size: var(--kp-fs-xlarge); font-weight: 700; flex: 0 0 auto; }
+    .kp[data-phase="alarm"] .kp-elapsed { display: block; }
+
+    /* ------------------------------------------------------------ rows */
+    .kp-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      touch-action: pan-y;
+      flex-direction: column;
+      gap: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .kp-sn {
+      display: grid;
+      grid-template-columns: 30px 1fr 48px 76px;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 8px;
+      border-radius: 0;
+      background: transparent;
+      font-size: var(--kp-fs-default);
+      flex: 0 0 auto;
+      position: relative;
+    }
+    .kp-sn + .kp-sn::before { content: ''; position: absolute; left: 8px; right: 8px; top: 0; height: 1px; background: var(--kp-faint); }
+    .kp-sn.open::before, .kp-sn.tampered::before, .kp-sn.open + .kp-sn::before, .kp-sn.tampered + .kp-sn::before { display: none; }
+    .kp-ico { width: 30px; height: 30px; border-radius: 9px; background: transparent; display: flex; align-items: center; justify-content: center; opacity: .8; }
+    .kp-ico svg { width: 17px; height: 17px; }
+    .kp-sn-name { min-width: 0; line-height: 1.2; }
+    .kp-sn-name b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .kp-sn-name small { display: block; font-size: 11.5px; opacity: .6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .kp-modes { display: flex; justify-content: center; gap: 3px; padding: 4px 5px; border-radius: 8px; background: transparent; }
+    .kp-modes svg { width: 13px; height: 13px; stroke-width: 2.3; opacity: .2; }
+    .kp-modes svg.on.away { color: var(--kp-armed); opacity: 1; }
+    .kp-modes svg.on.home { color: var(--kp-partial); opacity: 1; }
+    .kp-chip { display: inline-flex; align-items: center; gap: 6px; font-size: var(--kp-fs-small); font-weight: 600; padding: 4px 0; color: #1e8f3f; white-space: nowrap; justify-self: start; }
+    .homey-dark-mode .kp-chip, body.homey-dark-mode .kp-chip { color: #4cd964; }
+    .kp-chip i { width: 12px; height: 12px; display: block; flex: 0 0 auto; position: relative; }
+    .kp-chip i::after { content: ''; position: absolute; left: 2.5px; top: 2.5px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .kp-chip svg { width: 12px; height: 12px; stroke-width: 3; flex: 0 0 auto; }
+    .kp-chip.open { color: #b86a00; }
+    .homey-dark-mode .kp-chip.open, body.homey-dark-mode .kp-chip.open { color: #ffb340; }
+    .kp-chip.tamper { color: #c72c23; }
+    .homey-dark-mode .kp-chip.tamper, body.homey-dark-mode .kp-chip.tamper { color: #ff6961; }
+    .kp-sn.open, .kp-sn.tampered { border-radius: 10px; margin: 3px 0; }
+    .kp-sn.open { background: rgba(255, 149, 0, .12); }
+    .kp-sn.tampered { background: rgba(255, 59, 48, .10); grid-template-rows: auto auto; }
+    .kp-tamper { grid-column: 2 / -1; display: flex; align-items: center; gap: 6px; font-size: var(--kp-fs-small); font-weight: 600; color: var(--kp-armed); }
+    .kp-tamper svg { width: 13px; height: 13px; stroke-width: 2.4; }
+    .kp-empty { font-size: var(--kp-fs-small); opacity: .6; text-align: center; padding: 16px 8px; }
+    /* Narrow widgets (half-width on a phone): drop the mode pill, keep the state */
+    @media (max-width: 299px) {
+      .kp-sn { grid-template-columns: 26px 1fr 70px; gap: 8px; }
+      .kp-modes { display: none; }
+      .kp-tamper { grid-column: 2 / -1; }
+    }
+    /* Slim pager: one 18px line, only when the list overflows */
+    .kp-pager { display: none; flex: 0 0 auto; height: 18px; align-items: center; justify-content: center; gap: 4px; font-size: 11px; opacity: .6; cursor: pointer; }
+    .kp-pager svg { width: 12px; height: 12px; stroke-width: 2.5; }
+    .kp[data-view="list"] .kp-pager.show, .kp[data-view="arming"] .kp-pager.show { display: flex; }
+
+    /* -------------------------------------------------------- hero views */
+    .kp-strip { justify-content: center; align-items: center; gap: 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .6; padding-top: 10px; flex: 0 0 auto; }
+    .kp-strip i { width: 6px; height: 6px; border-radius: 50%; background: #ff5a50; display: inline-block; animation: kp-blink-slow 1.6s infinite; }
+    @keyframes kp-blink-slow { 50% { opacity: .2; } }
+    .kp-hero {
+      flex: 1 1 auto; min-height: 0;
+      flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+      border-radius: var(--kp-radius); background: var(--kp-key-bg);
+      text-align: center; padding: 12px;
+    }
+    .kp-glow { position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: radial-gradient(circle, rgba(52, 199, 89, .25) 0%, rgba(52, 199, 89, 0) 70%); }
+    .kp-glow::before { content: ''; position: absolute; inset: 14px; border-radius: 50%; border: 1.5px solid rgba(52, 199, 89, .45); }
+    .kp-glow svg { width: 70px; height: 70px; stroke-width: 1.6; color: var(--kp-disarmed); }
+    .kp-hero-big { font-size: 24px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; max-width: 100%; overflow-wrap: anywhere; line-height: 1.15; }
+    .kp-hero-sub { font-size: 13px; opacity: .7; }
+    .kp-hero-sub b { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+    /* Armed: the whole tile goes crimson-to-charcoal (variant B) */
+    .kp[data-view="armed"] { color: var(--kp-white); padding: 0 10px 10px; }
+    .kp[data-view="armed"][data-mode="armed"] { background: linear-gradient(160deg, #7a1410 0%, #3a0c0a 60%, #1c1c1e 100%); }
+    .kp[data-view="armed"][data-mode="partially_armed"] { background: linear-gradient(160deg, #7a4a08 0%, #3a2406 60%, #1c1c1e 100%); }
+    .kp[data-view="armed"] .kp-hero { background: transparent; }
+    .kp[data-view="armed"][data-mode="armed"] .kp-glow { background: radial-gradient(circle, rgba(255, 90, 80, .5) 0%, rgba(255, 90, 80, 0) 70%); }
+    .kp[data-view="armed"][data-mode="armed"] .kp-glow::before { border-color: rgba(255, 120, 110, .6); }
+    .kp[data-view="armed"][data-mode="armed"] .kp-glow svg { color: #ff7b72; }
+    .kp[data-view="armed"][data-mode="partially_armed"] .kp-glow { background: radial-gradient(circle, rgba(255, 170, 60, .45) 0%, rgba(255, 170, 60, 0) 70%); }
+    .kp[data-view="armed"][data-mode="partially_armed"] .kp-glow::before { border-color: rgba(255, 190, 90, .6); }
+    .kp[data-view="armed"][data-mode="partially_armed"] .kp-glow svg { color: #ffb340; }
+    .kp[data-view="armed"][data-mode="partially_armed"] .kp-strip i { background: #ffb340; }
+
+    /* Alarm: beacon red with a breathing glow and a ripple around the bell */
+    .kp[data-view="alarm"] { color: var(--kp-white); padding: 0 10px 10px; background: radial-gradient(120% 90% at 50% 0%, #ff3b30 0%, #c7190f 50%, #5a0d08 100%); }
+    .kp[data-view="alarm"]::before { content: ''; position: absolute; left: 50%; top: 42%; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .28) 0%, rgba(255, 255, 255, 0) 60%); animation: kp-breathe 1.4s ease-in-out infinite; pointer-events: none; }
+    @keyframes kp-breathe { 50% { transform: scale(1.18); opacity: .7; } }
+    .kp[data-view="alarm"] .kp-hero, .kp[data-view="alarm"] .kp-strip, .kp[data-view="alarm"] .kp-actions { position: relative; z-index: 1; }
+    .kp[data-view="alarm"] .kp-hero { background: transparent; }
+    .kp[data-view="alarm"] .kp-glow { background: radial-gradient(circle, rgba(255, 255, 255, .35) 0%, rgba(255, 255, 255, 0) 70%); }
+    .kp[data-view="alarm"] .kp-glow::before { border-color: rgba(255, 255, 255, .7); }
+    .kp[data-view="alarm"] .kp-glow::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .35); animation: kp-ripple 1.4s ease-out infinite; }
+    @keyframes kp-ripple { 0% { transform: scale(.8); opacity: .8; } 100% { transform: scale(1.25); opacity: 0; } }
+    .kp[data-view="alarm"] .kp-glow svg { color: var(--kp-white); }
+    .kp[data-view="alarm"] .kp-hero-big { font-size: 28px; letter-spacing: .18em; }
+    .kp[data-view="alarm"] .kp-hero-sub { opacity: .9; font-size: 14px; }
+    .kp[data-view="alarm"] .kp-strip { opacity: .9; }
+    .kp[data-view="alarm"] .kp-strip i { background: var(--kp-white); animation: kp-blink .7s steps(2) infinite; }
+
+    /* Alarm keypad (after Silence / Disarm): same red, translucent keys */
+    .kp[data-view="keypad"][data-phase="alarm"] { color: var(--kp-white); padding: 10px; background: linear-gradient(160deg, #e0241a 0%, #a3140c 100%); }
+    .kp[data-view="keypad"][data-phase="alarm"] .kp-status { background: rgba(0, 0, 0, .18); }
+    .kp[data-view="keypad"][data-phase="alarm"] .kp-sub { opacity: .85; }
+    .kp[data-view="keypad"][data-phase="alarm"] .kp-badge { background: rgba(255, 255, 255, .2); color: var(--kp-white); animation: kp-pulse 1s ease-in-out infinite; }
+    @keyframes kp-pulse { 50% { transform: scale(1.08); background: rgba(255, 255, 255, .32); } }
+    .kp[data-view="keypad"][data-phase="alarm"] .kp-key { background: rgba(255, 255, 255, .14); color: var(--kp-white); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18); }
+    .kp[data-view="keypad"][data-phase="alarm"] .kp-pin { color: rgba(255, 255, 255, .85); }
+    .kp[data-view="keypad"][data-phase="alarm"] .kp-pin i { border-color: rgba(255, 255, 255, .5); }
+    .kp[data-view="keypad"][data-phase="alarm"] .kp-pin i.on { background: var(--kp-white); border-color: var(--kp-white); }
+    @keyframes kp-blink { 50% { opacity: .2; } }
+
+    /* --------------------------------------------------------- keypad */
+    .kp-pin { justify-content: center; align-items: center; gap: 12px; height: 30px; flex: 0 0 auto; opacity: .8; font-size: var(--kp-fs-small); }
+    .kp-pin i { display: block; width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--kp-key-bg-active); }
+    .kp-pin i.on { background: currentColor; border-color: currentColor; }
+    .kp-pin.shake { animation: kp-shake .35s; }
+    @keyframes kp-shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    .kp-grid { grid-template-columns: repeat(3, 1fr); gap: var(--kp-gap); flex: 1 1 auto; min-height: 0; }
+    .kp-key {
+      border: 0; margin: 0;
+      border-radius: var(--kp-radius);
+      background: var(--kp-key-bg);
+      color: inherit;
+      font: inherit;
+      font-size: 23px;
+      font-weight: 500;
+      letter-spacing: .02em;
+      min-height: 44px;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+      transition: background .1s;
+    }
+    .homey-dark-mode .kp-key, body.homey-dark-mode .kp-key { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06); }
+    .kp-key:active { background: var(--kp-key-bg-active); }
+    .kp-key.kp-fn { font-size: var(--kp-fs-small); font-weight: 600; opacity: .7; letter-spacing: .04em; }
+    .kp-key svg { width: 24px; height: 24px; stroke-width: 1.8; pointer-events: none; display: block; margin: 0 auto; }
+    .kp-key { display: inline-flex; align-items: center; justify-content: center; }
+
+    /* --------------------------------------------------------- actions */
+    .kp-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--kp-gap); flex: 0 0 auto; position: relative; z-index: 1; }
+    .kp-actions[data-cols="1"] { grid-template-columns: 1fr; }
+    .kp-actions[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
+    .kp-action {
+      border: 0; margin: 0;
+      border-radius: var(--kp-radius);
+      background: rgba(120, 120, 128, .09);
+      color: inherit;
+      min-height: 54px;
+      padding: 6px 10px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font: inherit; font-size: var(--kp-fs-default); font-weight: 600;
+      cursor: pointer;
+      transition: background .1s, opacity .15s, transform .05s;
+    }
+    .kp-action svg { width: 20px; height: 20px; stroke-width: 2.2; flex: 0 0 auto; }
+    .kp-action:active { transform: scale(.98); }
+    .kp-action[disabled] { opacity: .35; cursor: default; }
+    .kp-action.arm svg { color: var(--kp-armed); }
+    .kp-action.partial svg { color: var(--kp-partial); }
+    .kp-action.disarm svg { color: var(--kp-disarmed); }
+    .kp-action.silence svg, .kp-action.cancel svg, .kp-action.back svg { opacity: .75; }
+    .kp-action.ghost { background: transparent; border: 1.5px solid var(--kp-key-bg-active); }
+    .kp-action.primary { color: var(--kp-white); box-shadow: 0 6px 16px rgba(0, 0, 0, .14); }
+    .kp-action.primary svg { color: var(--kp-white); opacity: 1; }
+    .kp-action.primary.arm { background: linear-gradient(180deg, #ff5a50, #e6352b); }
+    .kp-action.primary.partial { background: linear-gradient(180deg, #ffa733, #e98600); }
+    .kp-action.primary.disarm, .kp-action.primary.cancel, .kp-action.primary.silence { background: linear-gradient(180deg, #3fd467, #2bb252); }
+    /* on the dark armed tile and the red alarm tiles */
+    .kp[data-view="armed"] .kp-action.ghost { border-color: rgba(255, 255, 255, .3); color: var(--kp-white); }
+    .kp[data-view="armed"] .kp-action.disarm svg { color: #4cd964; }
+    .kp[data-view="alarm"] .kp-action, .kp[data-view="keypad"][data-phase="alarm"] .kp-action { background: rgba(255, 255, 255, .18); color: var(--kp-white); border: 1.5px solid rgba(255, 255, 255, .35); box-shadow: none; }
+    .kp[data-view="alarm"] .kp-action svg, .kp[data-view="keypad"][data-phase="alarm"] .kp-action svg { color: var(--kp-white); opacity: 1; }
+    .kp[data-view="alarm"] .kp-action.primary, .kp[data-view="keypad"][data-phase="alarm"] .kp-action.primary { background: var(--kp-white); color: #c72c23; border: 0; }
+    .kp[data-view="alarm"] .kp-action.primary svg, .kp[data-view="keypad"][data-phase="alarm"] .kp-action.primary svg { color: #c72c23; }
+
+    /* Feedback floats above the action row, so no space is reserved for it
+       and the buttons sit on the bottom edge of the widget. */
+    .kp-msg {
+      display: none;
+      position: absolute;
+      left: 8px; right: 8px; bottom: 64px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: rgba(120, 120, 128, .22);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      text-align: center;
+      font-size: var(--kp-fs-small);
+      font-weight: 500;
+      color: var(--kp-alarm);
+      z-index: 2;
+    }
+    .kp-msg.show { display: block; }
+    .kp-msg.ok { color: var(--kp-disarmed); }
+    .kp[data-view="alarm"] .kp-msg, .kp[data-view="keypad"][data-phase="alarm"] .kp-msg, .kp[data-view="armed"] .kp-msg { color: var(--kp-white); background: rgba(0, 0, 0, .35); }
+  </style>
+</head>
+<body class="homey-widget">
+  <div class="kp" id="kp" data-mode="disarmed" data-phase="idle" data-view="list">
+    <div class="kp-status">
+      <span class="kp-badge" id="badge"></span>
+      <div class="kp-status-text">
+        <div class="kp-title" id="title">…</div>
+        <div class="kp-sub" id="sub"></div>
+      </div>
+      <div class="kp-ring" id="ring"><svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="20"/><circle class="val" id="ringVal" cx="22" cy="22" r="20"/></svg><b id="count"></b></div>
+      <div class="kp-elapsed" id="elapsedHd"></div>
+    </div>
+
+    <div class="kp-strip" id="strip"><i></i><span id="stripText"></span></div>
+
+    <div class="kp-hero" id="hero">
+      <span class="kp-glow" id="heroIcon"></span>
+      <div class="kp-hero-big" id="heroBig"></div>
+      <div class="kp-hero-sub" id="heroSub"></div>
+    </div>
+
+    <div class="kp-list" id="list"></div>
+    <div class="kp-pager" id="pager"></div>
+
+    <div class="kp-pin" id="pin"></div>
+
+    <div class="kp-grid" id="grid">
+      <button class="kp-key" data-k="1">1</button>
+      <button class="kp-key" data-k="2">2</button>
+      <button class="kp-key" data-k="3">3</button>
+      <button class="kp-key" data-k="4">4</button>
+      <button class="kp-key" data-k="5">5</button>
+      <button class="kp-key" data-k="6">6</button>
+      <button class="kp-key" data-k="7">7</button>
+      <button class="kp-key" data-k="8">8</button>
+      <button class="kp-key" data-k="9">9</button>
+      <button class="kp-key kp-fn" data-k="clear">CLEAR</button>
+      <button class="kp-key" data-k="0">0</button>
+      <button class="kp-key kp-fn" data-k="back" aria-label="Backspace"><svg viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg></button>
+    </div>
+
+    <div class="kp-actions" id="actions"></div>
+    <div class="kp-msg" id="msg"></div>
+  </div>
+
+  <script>
+    (function () {
+      var H = null;
+      var settings = {};
+      var instanceId = '';
+      var pin = '';
+      var status = null;
+      var busy = false;
+      var msgTimer = null;
+      var localTicker = null;
+
+      var MAX_PIN = 10; // 8 digit PIN + up to 2 panic digits
+      var KEYPAD_IDLE_MS = 30000; // an untouched keypad falls back to the state view
+      var RING = 125.66; // circumference of the countdown ring
+      var autoTimer = null;
+      var idleTimer = null;
+
+      // The keypad is only shown for an action the user picked (or when the
+      // alarm is pending, where a code is the only thing that helps).
+      var keypadFor = null;   // 'armed' | 'partially_armed' | 'disarmed' | 'cancel' | 'deactivate' | null
+      var lastKey = '';       // phase+mode of the last status, to spot changes
+      var lastListSig = '';   // what the sensor rows were last built from
+
+      /* shared:start */
+      /* Shared client helpers for the dashboard widgets. Homey serves each widget
+         folder on its own, so this file is inlined into every widget's index.html
+         between the "shared:start" and "shared:end" markers by `npm run widgets`.
+         Edit here, never in the widgets. The widget declares `H` (the Homey client)
+         before this block. */
+      var MOTION_LIKE = { alarm_motion: 1, alarm_occupancy: 1, alarm_presence: 1 };
+
+      // Inline icons (Feather-style strokes), coloured through CSS.
+      var ICONS = {
+        shield: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+        shieldCheck: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>',
+        homePlain: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+        unlock: '<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>',
+        bell: '<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+        bellOff: '<svg viewBox="0 0 24 24"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18.6 13A17.9 17.9 0 0 1 18 8"/><path d="M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.3-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+        x: '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+        back: '<svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+        check: '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>',
+        down: '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
+        up: '<svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>',
+        alert: '<svg viewBox="0 0 24 24"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>',
+        door: '<svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h7v18"/><path d="M14 3h3a2 2 0 0 1 2 2v16"/><circle cx="11" cy="12" r="1"/></svg>',
+        motion: '<svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1H8V6a4 4 0 0 1 4-4z"/><path d="M4 22l3-9h10l3 9"/><path d="M9 13l-1 9M15 13l1 9"/></svg>',
+        sensor: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7"/></svg>',
+        eyeOff: '<svg viewBox="0 0 24 24"><path d="M17.9 17.9A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.1-6M9.9 4.2A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.2 3.2"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+      };
+
+      /** Translation lookup for one namespace of locales/<lang>.json, with a fallback. */
+      function makeT(ns) {
+        return function (key, fallback) {
+          try {
+            var s = H.__(ns + '.' + key);
+            return (s && s !== ns + '.' + key) ? s : fallback;
+          } catch (e) { return fallback; }
+        };
+      }
+
+      /** Icon for a sensor row by capability. */
+      function iconFor(s) {
+        if (MOTION_LIKE[s.capability]) return ICONS.motion;
+        if (s.capability === 'alarm_contact') return ICONS.door;
+        return s.capability === 'alarm_tamper' ? ICONS.alert : ICONS.sensor;
+      }
+
+      // Fold each device's tamper row into its main row (same deviceId); a device
+      // that only has a tamper capability keeps its own row. Returns new objects,
+      // the status rows themselves are left alone.
+      function groupRows(all) {
+        var byDev = {}, out = [];
+        all.forEach(function (s) {
+          if (s.capability === 'alarm_tamper') return;
+          var row = Object.assign({}, s, { tamper: null });
+          out.push(row);
+          if (row.deviceId && !byDev[row.deviceId]) byDev[row.deviceId] = row;
+        });
+        all.forEach(function (s) {
+          if (s.capability !== 'alarm_tamper') return;
+          var main = s.deviceId && byDev[s.deviceId];
+          if (!main) { out.push(Object.assign({}, s, { tamper: null })); return; }
+          if (!main.tamper || (s.enabled && s.active)) main.tamper = s;
+        });
+        return out;
+      }
+      function tampered(s) { return Boolean(s.tamper && s.tamper.enabled && s.tamper.active); }
+
+      /** The zone chosen in the widget's autocomplete setting, or null for all. */
+      function zoneFilter(settings) {
+        var z = settings && settings.zone;
+        if (!z) return null;
+        var id = typeof z === 'object' ? z.id : z;
+        return id ? String(id) : null;
+      }
+
+      /** Elapsed-time texts in the two largest units: "45 s", "12 min", "3 h 10 min", "5 d 3 h". */
+      function makeElapsed(t) {
+        function elapsed(ts) {
+          var s = Math.max(0, Math.round((Date.now() - ts) / 1000));
+          var m = Math.floor(s / 60), h = Math.floor(m / 60), d = Math.floor(h / 24);
+          if (s < 60) return s + ' s';
+          if (m < 60) return m + ' ' + t('min', 'min');
+          if (h < 24) return h + ' ' + t('h', 'h') + (m % 60 ? ' ' + (m % 60) + ' ' + t('min', 'min') : '');
+          return d + ' ' + t('d', 'd') + (h % 24 ? ' ' + (h % 24) + ' ' + t('h', 'h') : '');
+        }
+        return {
+          elapsed: elapsed,
+          since: function (ts) { return t('since', 'since') + ' ' + elapsed(ts); },
+          ago: function (ts) { return Date.now() - ts < 60000 ? t('just_now', 'just now') : elapsed(ts) + ' ' + t('ago', 'ago'); },
+        };
+      }
+
+      // A slim line under a scrolling list pages through it: "v 3 more" / "^ back
+      // to top". Returns the refresh function; call it after every render.
+      function makePager(container, pagerEl, t, itemSelector) {
+        function items() { return itemSelector ? container.querySelectorAll(itemSelector) : container.children; }
+        function atEnd() { return container.scrollTop + container.clientHeight >= container.scrollHeight - 2; }
+        function update() {
+          var overflow = container.scrollHeight > container.clientHeight + 2;
+          if (!overflow) { pagerEl.classList.remove('show'); return; }
+          var list = items(), below = 0;
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].offsetTop + list[i].offsetHeight > container.scrollTop + container.clientHeight + 1) below += 1;
+          }
+          var end = atEnd();
+          pagerEl.innerHTML = (end ? ICONS.up : ICONS.down) + '<span></span>';
+          pagerEl.querySelector('span').textContent = end ? t('top', 'back to top') : below + ' ' + t('more', 'more');
+          pagerEl.classList.add('show');
+        }
+        pagerEl.addEventListener('click', function () {
+          var end = atEnd();
+          try {
+            if (end) container.scrollTo({ top: 0, behavior: 'smooth' });
+            else container.scrollBy({ top: Math.max(40, container.clientHeight - 24), behavior: 'smooth' });
+          } catch (e) { container.scrollTop = end ? 0 : container.scrollTop + container.clientHeight - 24; }
+          setTimeout(update, 350);
+        });
+        var timer = null;
+        container.addEventListener('scroll', function () { clearTimeout(timer); timer = setTimeout(update, 80); });
+        return update;
+      }
+      /* shared:end */
+
+      var $ = function (id) { return document.getElementById(id); };
+      var kp = $('kp'), badge = $('badge'), title = $('title'), sub = $('sub'), count = $('count'), ringVal = $('ringVal'), elapsedHd = $('elapsedHd'),
+          stripText = $('stripText'), heroIcon = $('heroIcon'), heroBig = $('heroBig'), heroSub = $('heroSub'),
+          listEl = $('list'), pagerEl = $('pager'), pinEl = $('pin'), actions = $('actions'), msg = $('msg');
+
+      var t = makeT('widget');
+
+      function modeLabel(mode) {
+        if (mode === 'armed') return t('armed', 'Armed');
+        if (mode === 'partially_armed') return t('partially_armed', 'Partially armed');
+        return t('disarmed', 'Disarmed');
+      }
+      function modeShort(mode) {
+        if (mode === 'armed') return t('away', 'Away');
+        if (mode === 'partially_armed') return t('partial', 'Home');
+        return t('disarmed', 'Disarmed');
+      }
+      function showList() { return settings.showOpenSensors !== false; }
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      function elapsedText(since) {
+        var s = Math.max(0, Math.round((Date.now() - since) / 1000));
+        var m = Math.floor(s / 60);
+        return m >= 60 ? Math.floor(m / 60) + ':' + pad(m % 60) + ':' + pad(s % 60) : m + ':' + pad(s % 60);
+      }
+
+      // ---------------------------------------------------------------- view
+      // Which view the widget shows for the current status and user intent.
+      function pickView() {
+        if (!status) return showList() ? 'list' : 'plain';
+        var phase = status.phase;
+        if (phase === 'entry') return 'keypad';
+        if (keypadFor) return 'keypad';
+        if (phase === 'alarm') return 'alarm';
+        if (phase === 'arming') return showList() ? 'arming' : 'plain';
+        if (status.mode !== 'disarmed') return 'armed';
+        return showList() ? 'list' : 'plain';
+      }
+
+      function openKeypad(action) {
+        keypadFor = action;
+        pin = '';
+        armIdle();
+        renderAll();
+      }
+      function closeKeypad() {
+        keypadFor = null;
+        pin = '';
+        clearTimeout(idleTimer);
+        renderAll();
+      }
+      function armIdle() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(function () {
+          if (keypadFor && status && status.phase !== 'entry') closeKeypad();
+        }, KEYPAD_IDLE_MS);
+      }
+
+      // ----------------------------------------------------------- rendering
+      function renderPin() {
+        pinEl.classList.remove('shake');
+        if (pin.length === 0) {
+          pinEl.textContent = status && !status.hasUsers ? t('no_users', 'Set up users in the app settings first') : t('enter_pin', 'Enter PIN');
+          return;
+        }
+        pinEl.textContent = '';
+        for (var i = 0; i < pin.length; i++) {
+          var d = document.createElement('i');
+          d.className = 'on';
+          pinEl.appendChild(d);
+        }
+      }
+
+      function sensorRows() {
+        var rows = status && Array.isArray(status.sensors) ? status.sensors : null;
+        if (rows) return rows;
+        // older app version without per-sensor rows: fall back to the open list
+        return (status && status.openSensors || []).map(function (s) {
+          return { id: s.id, name: s.name, capability: 'alarm_contact', modes: ['armed', 'partially_armed'], enabled: true, active: true };
+        });
+      }
+
+      function activeRows() { return groupRows(sensorRows().filter(function (s) { return s.enabled; })); }
+
+      function stateLabel(s, arming) {
+        if (s.capability === 'alarm_tamper') return s.active ? t('tamper', 'Tamper') : (arming ? t('ready', 'Ready') : t('ok', 'OK'));
+        if (s.active) return MOTION_LIKE[s.capability] ? t('motion', 'Motion') : t('open', 'Open');
+        if (arming) return t('ready', 'Ready');
+        return MOTION_LIKE[s.capability] ? t('clear', 'Clear') : t('closed', 'Closed');
+      }
+
+      function renderList() {
+        listEl.innerHTML = '';
+        if (!status) return;
+        var arming = status.phase === 'arming';
+        var mode = arming ? status.pendingMode : null;
+        // excluded sensors are not part of the alarm, so they are not listed
+        var rows = activeRows().filter(function (s) {
+          if (!arming) return true;
+          return s.modes.indexOf(mode) > -1; // the checklist for the mode being armed
+        });
+        rows.sort(function (a, b) {
+          var ao = a.active || tampered(a) ? 0 : 1, bo = b.active || tampered(b) ? 0 : 1; // open or tampered first
+          if (ao !== bo) return ao - bo;
+          return a.name.localeCompare(b.name);
+        });
+        if (!rows.length) {
+          var e = document.createElement('div');
+          e.className = 'kp-empty';
+          e.textContent = t('no_sensors', 'No sensors in this alarm yet');
+          listEl.appendChild(e);
+          setTimeout(updatePager, 0);
+          return;
+        }
+        rows.forEach(function (s) {
+          var row = document.createElement('div');
+          var tamp = tampered(s), tamperOnly = s.capability === 'alarm_tamper';
+          var open = s.active || tamp;
+          row.className = 'kp-sn' + (s.active ? ' open' : '') + (tamp ? ' tampered' : '');
+          var inAway = s.modes.indexOf('armed') > -1, inHome = s.modes.indexOf('partially_armed') > -1;
+          var chipCls = tamp || (tamperOnly && s.active) ? ' tamper' : (s.active ? ' open' : '');
+          var chipIcon = (arming && !open) ? ICONS.check : '<i></i>';
+          row.innerHTML =
+            '<span class="kp-ico">' + iconFor(s) + '</span>' +
+            '<span class="kp-sn-name"><b></b>' + (s.zone ? '<small></small>' : '') + '</span>' +
+            '<span class="kp-modes">' +
+              ICONS.shield.replace('<svg', '<svg class="away' + (inAway ? ' on' : '') + '"') +
+              ICONS.homePlain.replace('<svg', '<svg class="home' + (inHome ? ' on' : '') + '"') +
+            '</span>' +
+            '<span class="kp-chip' + chipCls + '">' + chipIcon + '<span></span></span>' +
+            (tamp ? '<span class="kp-tamper">' + ICONS.alert + '<span></span></span>' : '');
+          row.querySelector('.kp-sn-name b').textContent = s.name + (tamperOnly ? ' · ' + t('tamper', 'Tamper') : '');
+          if (s.zone) row.querySelector('.kp-sn-name small').textContent = s.zone;
+          row.querySelector('.kp-chip span').textContent = tamp ? t('tamper', 'Tamper') : stateLabel(s, arming);
+          if (tamp) row.querySelector('.kp-tamper span').textContent = t('tamper_alarm', 'Tamper alarm');
+          row.title = s.name;
+          listEl.appendChild(row);
+        });
+        setTimeout(updatePager, 0);
+      }
+
+      function renderHero() {
+        if (!status) return;
+        var phase = status.phase;
+        if (phase === 'alarm') {
+          heroIcon.innerHTML = ICONS.bell;
+          heroBig.textContent = t('alarm', 'ALARM');
+          heroSub.innerHTML = '<span></span> · <b id="elapsedHero"></b>';
+          heroSub.querySelector('span').textContent = status.alarmReason || '';
+          stripText.textContent = t('alarm', 'Alarm') + (status.alarmReason ? ' · ' + status.alarmReason : '');
+        } else if (status.mode === 'armed') {
+          heroIcon.innerHTML = ICONS.shieldCheck;
+          heroBig.textContent = t('armed', 'Armed');
+          heroSub.textContent = t('armed_warning', 'Intrusion will be reported');
+          stripText.textContent = t('away_mode', 'Away mode');
+        } else if (status.mode === 'partially_armed') {
+          heroIcon.innerHTML = ICONS.home;
+          heroBig.textContent = t('partially_armed', 'Partially armed');
+          heroSub.textContent = t('armed_warning', 'Intrusion will be reported');
+          stripText.textContent = t('home_mode', 'Home mode');
+        } else {
+          heroIcon.innerHTML = ICONS.shield;
+          heroBig.textContent = phase === 'arming' ? t('arming_mode', 'Arming') : t('disarmed', 'Disarmed');
+          heroSub.textContent = '';
+          stripText.textContent = '';
+        }
+        tickElapsed();
+      }
+
+      function setBadge(cls, icon) {
+        badge.className = 'kp-badge' + (cls ? ' ' + cls : '');
+        badge.innerHTML = icon;
+        badge.parentNode.setAttribute('data-tone', cls || 'green');
+      }
+
+      function renderStatus() {
+        if (!status) return;
+        var phase = status.phase, mode = status.mode;
+        kp.setAttribute('data-mode', mode);
+        kp.setAttribute('data-phase', phase);
+
+        var rows = activeRows();
+        var open = rows.filter(function (s) { return s.active; }).length;
+        var tamp = rows.filter(function (s) { return tampered(s) || (s.capability === 'alarm_tamper' && s.active); }).length;
+        var summary = [];
+        if (open) summary.push(open + ' ' + t('open_lc', 'open'));
+        if (tamp) summary.push(tamp + ' ' + t('tamper_lc', 'tamper'));
+        if (!open && !tamp) summary.push(t('all_closed', 'All closed'));
+        summary.push(rows.length + ' ' + t('sensors_lc', 'sensors'));
+
+        if (phase === 'alarm') {
+          setBadge('', ICONS.bell);
+          title.textContent = t('alarm', 'ALARM');
+          sub.textContent = status.alarmReason || '';
+        } else if (phase === 'entry') {
+          setBadge('red', ICONS.bell);
+          title.textContent = t('entry', 'Alarm pending');
+          sub.textContent = (status.pendingSensor ? status.pendingSensor.name + ' · ' : '') + t('enter_code', 'Enter your code');
+        } else if (phase === 'arming') {
+          setBadge('amber', ICONS.shield);
+          title.textContent = t('arming_mode', 'Arming') + ' · ' + modeShort(status.pendingMode);
+          sub.textContent = open || tamp ? t('close_and_leave', 'Close the open sensors and leave') : t('leave_now', 'Leave now');
+        } else if (keypadFor) {
+          var k = keypadFor;
+          setBadge(k === 'armed' ? 'red' : k === 'partially_armed' ? 'amber' : k === 'cancel' ? 'grey' : '', k === 'armed' ? ICONS.shield : k === 'partially_armed' ? ICONS.home : k === 'cancel' ? ICONS.x : k === 'deactivate' ? ICONS.bellOff : ICONS.unlock);
+          title.textContent = actionLabel(keypadFor);
+          sub.textContent = t('enter_pin_confirm', 'Enter your code to confirm');
+        } else {
+          setBadge(mode === 'armed' ? 'red' : mode === 'partially_armed' ? 'amber' : '', mode === 'armed' ? ICONS.shieldCheck : mode === 'partially_armed' ? ICONS.home : ICONS.unlock);
+          title.textContent = modeLabel(mode);
+          sub.textContent = mode === 'disarmed' ? summary.join(' · ') : '';
+        }
+        renderRing();
+      }
+
+      function renderRing() {
+        var c = status && status.countdown;
+        if (!c) { count.textContent = ''; return; }
+        count.textContent = c.seconds;
+        var total = c.total || (status.config && (c.type === 'exit' ? status.config.exitDelay : status.config.entryDelay)) || c.seconds || 1;
+        var frac = Math.max(0, Math.min(1, c.seconds / total));
+        ringVal.style.strokeDashoffset = String(RING * (1 - frac));
+      }
+
+      function tickElapsed() {
+        if (!status || status.phase !== 'alarm' || !status.alarmSince) { elapsedHd.textContent = ''; return; }
+        var txt = elapsedText(status.alarmSince);
+        elapsedHd.textContent = txt;
+        var h = document.getElementById('elapsedHero');
+        if (h) h.textContent = txt;
+      }
+
+      function actionLabel(action) {
+        if (action === 'armed') return t('arm', 'Arm') + ' · ' + t('away', 'Away');
+        if (action === 'partially_armed') return t('arm', 'Arm') + ' · ' + t('partial', 'Home');
+        if (action === 'cancel') return t('cancel', 'Cancel');
+        if (action === 'deactivate') return t('silence', 'Silence');
+        return t('disarm', 'Disarm');
+      }
+
+      function button(cls, icon, label, action, kind) {
+        var b = document.createElement('button');
+        b.className = 'kp-action ' + cls + (kind ? ' ' + kind : '');
+        b.innerHTML = ICONS[icon] + '<span></span>';
+        b.querySelector('span').textContent = label;
+        b.setAttribute('data-action', action);
+        b.disabled = busy;
+        return b;
+      }
+
+      function renderActions() {
+        actions.innerHTML = '';
+        if (!status) return;
+        var phase = status.phase, view = kp.getAttribute('data-view');
+        var list = [];
+        var showPartial = settings.showPartial !== false;
+        if (view === 'alarm') {
+          list.push(button('silence', 'bellOff', t('silence', 'Silence'), 'deactivate'));
+          list.push(button('disarm', 'unlock', t('disarm', 'Disarm'), 'disarmed', 'primary'));
+        } else if (phase === 'entry') {
+          list.push(button('cancel', 'x', t('cancel', 'Cancel'), 'cancel', 'ghost'));
+          list.push(button('disarm', 'unlock', t('disarm', 'Disarm'), 'disarmed', 'primary'));
+        } else if (view === 'keypad') {
+          list.push(button('back', 'back', t('back', 'Back'), 'back', 'ghost'));
+          var k = keypadFor;
+          if (k === 'armed') list.push(button('arm', 'shield', t('arm', 'Arm'), 'confirm', 'primary'));
+          else if (k === 'partially_armed') list.push(button('partial', 'home', t('partial', 'Home'), 'confirm', 'primary'));
+          else if (k === 'cancel') list.push(button('cancel', 'x', t('cancel', 'Cancel'), 'confirm', 'primary'));
+          else if (k === 'deactivate') list.push(button('silence', 'bellOff', t('silence', 'Silence'), 'confirm', 'primary'));
+          else list.push(button('disarm', 'unlock', t('disarm', 'Disarm'), 'confirm', 'primary'));
+        } else if (phase === 'arming') {
+          list.push(button('cancel', 'x', t('cancel', 'Cancel'), 'cancel', 'ghost'));
+        } else if (status.mode === 'disarmed') {
+          list.push(button('arm', 'shield', t('arm', 'Arm'), 'armed'));
+          if (showPartial) list.push(button('partial', 'home', t('partial', 'Home'), 'partially_armed'));
+        } else {
+          list.push(button('disarm', 'unlock', t('disarm', 'Disarm'), 'disarmed', 'ghost'));
+          if (status.mode === 'partially_armed') list.push(button('arm', 'shield', t('arm', 'Arm'), 'armed', 'ghost'));
+        }
+        actions.setAttribute('data-cols', String(Math.min(3, Math.max(1, list.length))));
+        list.forEach(function (b) { actions.appendChild(b); });
+      }
+
+      // The rows only change with the sensors or the checklist mode, not
+      // with every countdown tick, so they are rebuilt only when needed.
+      function listSignature() {
+        if (!status) return '';
+        return status.phase + '|' + status.pendingMode + '|' + JSON.stringify(status.sensors || status.openSensors || []);
+      }
+      function renderAll() {
+        kp.setAttribute('data-view', pickView());
+        renderStatus();
+        renderHero();
+        var sig = listSignature();
+        if (sig !== lastListSig) { lastListSig = sig; renderList(); }
+        renderPin();
+        renderActions();
+      }
+
+      function showMsg(text, ok) {
+        msg.textContent = text || '';
+        msg.className = 'kp-msg' + (ok ? ' ok' : '') + (text ? ' show' : '');
+        clearTimeout(msgTimer);
+        if (text) msgTimer = setTimeout(function () { msg.textContent = ''; msg.className = 'kp-msg'; }, 4000);
+      }
+
+      // Smooth countdown and elapsed time between server pushes
+      function restartLocalTicker() {
+        clearInterval(localTicker);
+        if (!status) return;
+        if (!status.countdown && status.phase !== 'alarm') return;
+        localTicker = setInterval(function () {
+          if (!status) { clearInterval(localTicker); return; }
+          if (status.countdown && status.countdown.seconds > 0) {
+            status.countdown.seconds -= 1;
+            renderRing();
+          }
+          tickElapsed();
+        }, 1000);
+      }
+
+      // ------------------------------------------------------------- sounds
+      // Web Audio beeps. Browsers/webviews only start audio after a user
+      // gesture on the page, so the context is unlocked on the first touch and
+      // sounds may be silent until the tablet has been touched once.
+      var audio = { ctx: null, unlocked: false, timer: null, pattern: null };
+      function soundMode() { return settings.sound || 'off'; }
+      function volume() { var v = parseInt(settings.volume, 10); return (isNaN(v) ? 80 : Math.min(100, Math.max(1, v))) / 100; }
+      function unlockAudio() {
+        if (soundMode() === 'off') return;
+        try {
+          if (!audio.ctx) audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          if (audio.ctx.state === 'suspended') audio.ctx.resume();
+          audio.unlocked = true;
+          if (audio.pattern) startPattern(audio.pattern); // retry what we wanted to play
+        } catch (e) {}
+      }
+      ['touchstart', 'pointerdown', 'mousedown', 'keydown'].forEach(function (ev) {
+        document.addEventListener(ev, unlockAudio, { passive: true });
+      });
+      function beep(freq, ms, gainLevel) {
+        if (!audio.ctx) return;
+        try {
+          var o = audio.ctx.createOscillator(), g = audio.ctx.createGain();
+          o.type = 'square'; o.frequency.value = freq;
+          var now = audio.ctx.currentTime;
+          g.gain.setValueAtTime(0, now);
+          g.gain.linearRampToValueAtTime(gainLevel * volume() * 0.3, now + 0.01);
+          g.gain.setValueAtTime(gainLevel * volume() * 0.3, now + ms / 1000 - 0.02);
+          g.gain.linearRampToValueAtTime(0, now + ms / 1000);
+          o.connect(g); g.connect(audio.ctx.destination);
+          o.start(now); o.stop(now + ms / 1000 + 0.02);
+        } catch (e) {}
+      }
+      function stopPattern() {
+        clearInterval(audio.timer); audio.timer = null; audio.pattern = null;
+      }
+      function startPattern(name) {
+        stopPattern();
+        audio.pattern = name;
+        if (!audio.unlocked || !audio.ctx) return; // will start on next touch
+        if (name === 'alarm') {
+          var hi = true;
+          audio.timer = setInterval(function () { beep(hi ? 1100 : 750, 380, 1); hi = !hi; }, 420);
+          beep(1100, 380, 1);
+        } else if (name === 'entry') {
+          audio.timer = setInterval(function () {
+            var s = status && status.countdown ? status.countdown.seconds : 99;
+            if (s <= 10) { beep(1000, 120, 0.9); setTimeout(function () { beep(1000, 120, 0.9); }, 250); }
+            else beep(900, 150, 0.8);
+          }, 1000);
+        } else if (name === 'exit') {
+          audio.timer = setInterval(function () {
+            var s = status && status.countdown ? status.countdown.seconds : 99;
+            beep(650, s <= 10 ? 120 : 70, s <= 10 ? 0.7 : 0.4);
+          }, 1000);
+        }
+      }
+      function updateSound() {
+        var mode = soundMode();
+        if (mode === 'off' || !status) { stopPattern(); return; }
+        var want = null;
+        if (status.phase === 'alarm') want = 'alarm';
+        else if (status.phase === 'entry' && (mode === 'entry' || mode === 'all')) want = 'entry';
+        else if (status.phase === 'arming' && mode === 'all') want = 'exit';
+        if (want !== audio.pattern) { if (want) startPattern(want); else stopPattern(); }
+      }
+
+      var shownBlockAt = 0;
+      function applyStatus(s) {
+        status = s;
+        // A change of phase or mode ends whatever the user was typing: the
+        // keypad closes and the matching state view takes over.
+        var key = s.phase + '/' + s.mode;
+        if (key !== lastKey) {
+          lastKey = key;
+          keypadFor = null;
+          pin = '';
+          clearTimeout(idleTimer);
+        }
+        renderAll();
+        restartLocalTicker();
+        updateSound();
+        // Arming was abandoned at the end of the exit delay because a sensor
+        // was still open: say so once, even if nobody pressed anything.
+        var b = s && s.lastArmBlocked;
+        if (b && b.at && b.at !== shownBlockAt && (Date.now() - b.at) < 60000) {
+          shownBlockAt = b.at;
+          pinEl.classList.add('shake');
+          showMsg(t('not_armed', 'Not armed, still open') + ': ' + (b.sensors || []).map(function (x) { return x.name; }).join(', '));
+        }
+      }
+
+      // ------------------------------------------------------------- actions
+      function needsPin(action) {
+        var isArm = action === 'armed' || action === 'partially_armed';
+        var pinForArm = !(status && status.keypad && status.keypad.pinForArm === false);
+        return !(isArm && !pinForArm);
+      }
+
+      function submit(action) {
+        if (busy) return;
+        if (needsPin(action) && pin.length < 4) {
+          pinEl.classList.add('shake');
+          showMsg(t('enter_pin', 'Enter PIN'));
+          return;
+        }
+        busy = true;
+        renderActions();
+        H.api('POST', '/keypad', { pin: pin, action: action, instanceId: instanceId })
+          .then(function (res) {
+            pin = '';
+            busy = false;
+            if (res && res.ok) keypadFor = null; // done: back to the state view
+            if (res && res.status) applyStatus(res.status);
+            if (!res || !res.ok) {
+              pinEl.classList.add('shake');
+              showMsg(reasonText(res));
+            } else {
+              showMsg('', true);
+            }
+            renderAll();
+          })
+          .catch(function (err) {
+            busy = false;
+            pin = '';
+            renderAll();
+            showMsg(err && err.message ? err.message : 'Error');
+          });
+      }
+
+      function reasonText(res) {
+        var r = res && res.reason;
+        if (r === 'invalid') return 'Wrong PIN' + (res.attemptsLeft ? ' (' + res.attemptsLeft + ' left)' : '');
+        if (r === 'locked') return 'Locked, try again in ' + (res.retryAfter || 0) + 's';
+        if (r === 'sensors_open') return t('not_armed', 'Not armed, still open') + ': ' + (res.sensors || []).map(function (s) { return s.name; }).join(', ');
+        if (r === 'no_users') return t('no_users', 'Set up users in the app settings first');
+        if (r === 'not_allowed') return 'Not allowed for this user';
+        if (r === 'disabled') return 'User disabled';
+        return 'Failed';
+      }
+
+      // The most likely action for a code typed without picking one first.
+      function defaultAction() {
+        if (keypadFor) return keypadFor;
+        if (status.phase === 'alarm' || status.phase === 'entry') return 'disarmed';
+        if (status.phase === 'arming') return 'cancel';
+        return status.mode !== 'disarmed' ? 'disarmed' : 'armed';
+      }
+
+      function pressKey(k) {
+        try { H.hapticFeedback(); } catch (e) {}
+        if (k === 'clear') { pin = ''; }
+        else if (k === 'back') { pin = pin.slice(0, -1); }
+        else if (pin.length < MAX_PIN) { pin += k; }
+        renderPin();
+        showMsg('');
+        armIdle();
+
+        var auto = parseInt(settings.pinLength, 10);
+        clearTimeout(autoTimer);
+        if (auto && pin.length >= auto && status) {
+          // Auto-submit the chosen action after a short pause, so a panic
+          // suffix can still be typed after the normal code (the widget is
+          // not told whether one exists).
+          var action = defaultAction();
+          autoTimer = setTimeout(function () { submit(action); }, 1200);
+        }
+      }
+
+      function onAction(action) {
+        try { H.hapticFeedback(); } catch (e) {}
+        if (action === 'back') { closeKeypad(); return; }
+        if (action === 'confirm') { submit(keypadFor || defaultAction()); return; }
+        var view = kp.getAttribute('data-view');
+        if (view === 'keypad') { submit(action); return; } // entry keypad: act with the typed code
+        if (needsPin(action)) openKeypad(action);
+        else submit(action);
+      }
+
+      // Keys react on the press itself so fast or repeated taps never wait
+      // for the browser's double-tap detection. The click that follows a
+      // handled press is ignored; click still works for mouse/keyboard-only
+      // environments without pointer events.
+      var pressedAt = 0;
+      function onPress(ev, selector, handler) {
+        var b = ev.target.closest(selector);
+        if (!b || b.disabled) return;
+        if (ev.type === 'click' && Date.now() - pressedAt < 700) return; // already handled on pointerdown
+        if (ev.type === 'pointerdown') {
+          if (ev.button !== undefined && ev.button !== 0) return;
+          pressedAt = Date.now();
+          ev.preventDefault();
+        }
+        handler(b);
+      }
+      var hasPointer = 'PointerEvent' in window;
+      var keyHandler = function (ev) { onPress(ev, '.kp-key', function (b) { pressKey(b.getAttribute('data-k')); }); };
+      var actionHandler = function (ev) { onPress(ev, '.kp-action', function (b) { onAction(b.getAttribute('data-action')); }); };
+      if (hasPointer) {
+        $('grid').addEventListener('pointerdown', keyHandler);
+        actions.addEventListener('pointerdown', actionHandler);
+      }
+      $('grid').addEventListener('click', keyHandler);
+      actions.addEventListener('click', actionHandler);
+      // a double tap anywhere must never zoom the dashboard
+      document.addEventListener('dblclick', function (ev) { ev.preventDefault(); }, { passive: false });
+      document.addEventListener('gesturestart', function (ev) { ev.preventDefault(); }, { passive: false });
+
+      var updatePager = makePager(listEl, pagerEl, t);
+
+      // --------------------------------------------------------------- boot
+      window.onHomeyReady = function (Homey) {
+        H = Homey;
+        try { settings = Homey.getSettings() || {}; } catch (e) { settings = {}; }
+        try { instanceId = Homey.getWidgetInstanceId() || ''; } catch (e) {}
+
+        Homey.on('status', applyStatus);
+
+        Homey.api('GET', '/status', {})
+          .then(function (s) { applyStatus(s); })
+          .catch(function (err) { showMsg(err && err.message ? err.message : 'Error'); })
+          .then(function () { Homey.ready(); });
+
+        renderPin();
+      };
+    })();
+  </script>
+<script>
+(function(){
+  var listeners={};
+  var now = Date.now();
+  var sensors = [
+    {id:'d1:alarm_contact',deviceId:'d1',name:'Front door',capability:'alarm_contact',modes:['armed','partially_armed'],enabled:true,active:true,zone:'Hal',lastActiveAt:now-130000},
+    {id:'d1:alarm_tamper',deviceId:'d1',name:'Front door',capability:'alarm_tamper',modes:['armed','partially_armed'],enabled:true,active:false,zone:'Hal',lastActiveAt:null},
+    {id:'d2:alarm_contact',deviceId:'d2',name:'Back door',capability:'alarm_contact',modes:['armed','partially_armed'],enabled:true,active:false,zone:'Keuken',lastActiveAt:now-3*3600000-600000},
+    {id:'d2:alarm_tamper',deviceId:'d2',name:'Back door',capability:'alarm_tamper',modes:['armed','partially_armed'],enabled:true,active:true,zone:'Keuken',lastActiveAt:now-40000},
+    {id:'d3:alarm_contact',deviceId:'d3',name:'Kitchen window',capability:'alarm_contact',modes:['armed','partially_armed'],enabled:true,active:false,zone:'Keuken',lastActiveAt:null,lastChangedAt:now-5*86400000-3*3600000},
+    {id:'d4:alarm_motion',deviceId:'d4',name:'Living room motion',capability:'alarm_motion',modes:['armed'],enabled:true,active:false,zone:'Woonkamer',lastActiveAt:now-25*60000},
+    {id:'d5:alarm_motion',deviceId:'d5',name:'Hallway motion',capability:'alarm_motion',modes:['armed'],enabled:true,active:false,zone:'Hal',lastActiveAt:now-2*86400000-5*3600000},
+    {id:'d6:alarm_contact',deviceId:'d6',name:'Garage window',capability:'alarm_contact',modes:['armed'],enabled:false,active:false,zone:'Garage',lastActiveAt:null},
+    {id:'d7:alarm_contact',deviceId:'d7',name:'Attic hatch',capability:'alarm_contact',modes:['armed'],enabled:true,active:false,zone:'Zolder',lastActiveAt:null},
+    {id:'d8:alarm_motion',deviceId:'d8',name:'Office motion',capability:'alarm_motion',modes:['armed'],enabled:true,active:false,zone:'Kantoor',lastActiveAt:null},
+    {id:'d9:alarm_contact',deviceId:'d9',name:'Bedroom window',capability:'alarm_contact',modes:['armed'],enabled:true,active:false,zone:'Slaapkamer',lastActiveAt:null}
+  ];
+  var status={mode:'disarmed',phase:'idle',countdown:null,openSensors:[{id:'door',name:'Front door'}],excludedSensors:[],sensors:sensors,hasUsers:true,keypad:{pinForArm:true},panicSuffixLength:0};
+  var Homey={ready:function(){document.title='ready'},getSettings:function(){return {showPartial:true,showOpenSensors:true,pinLength:'manual',sound:'off'}},
+    getWidgetInstanceId:function(){return 'preview'},hapticFeedback:function(){},__:function(k){return k},
+    on:function(ev,cb){(listeners[ev]=listeners[ev]||[]).push(cb)},
+    api:function(m,path,body){return new Promise(function(res){setTimeout(function(){ if(path==='/status') return res(status); if(path==='/keypad'){ window.__lastSubmit=body; return res({ok:body.pin==='1234',reason:body.pin==='1234'?undefined:'invalid',attemptsLeft:3,status:status});} res({});},50);});}};
+  window.addEventListener('load',function(){window.onHomeyReady(Homey)});
+})();
+</script>
+</body>
+</html>

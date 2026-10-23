@@ -1,0 +1,37 @@
+{
+  "title": {
+    "en": "Sensors !{{are|are not}} open"
+  },
+  "titleFormatted": {
+    "en": "Sensors for [[mode]] !{{are|are not}} open"
+  },
+  "args": [
+    {
+      "name": "mode",
+      "type": "dropdown",
+      "title": {
+        "en": "Mode"
+      },
+      "values": [
+        {
+          "id": "any",
+          "title": {
+            "en": "Any mode"
+          }
+        },
+        {
+          "id": "armed",
+          "title": {
+            "en": "Armed"
+          }
+        },
+        {
+          "id": "partially_armed",
+          "title": {
+            "en": "Partially armed"
+          }
+        }
+      ]
+    }
+  ]
+}

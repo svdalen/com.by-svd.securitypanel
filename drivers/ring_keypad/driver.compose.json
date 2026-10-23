@@ -1,0 +1,357 @@
+{
+  "name": {
+    "en": "Ring Keypad"
+  },
+  "class": "sensor",
+  "capabilities": [
+    "measure_battery",
+    "alarm_tamper"
+  ],
+  "energy": {
+    "batteries": [
+      "INTERNAL"
+    ]
+  },
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "zwave"
+  ],
+  "images": {
+    "small": "{{driverAssetsPath}}/images/small.png",
+    "large": "{{driverAssetsPath}}/images/large.png",
+    "xlarge": "{{driverAssetsPath}}/images/xlarge.png"
+  },
+  "zwave": {
+    "manufacturerId": 838,
+    "productTypeId": [
+      257
+    ],
+    "productId": [
+      513,
+      514,
+      769,
+      1025
+    ],
+    "wakeUpInterval": 0,
+    "associationGroups": [
+      1
+    ],
+    "learnmode": {
+      "image": "{{driverAssetsPath}}/learnmode.svg",
+      "instruction": {
+        "en": "1. Power the keypad (USB cable or battery) and make sure it is awake.\n2. Press and hold the 1 key for about three seconds until the keypad's light starts blinking: it is now in pairing mode.\n3. Homey will ask for a 5-digit PIN to pair securely (S2). This is the first five digits of the DSK, printed next to the QR code on the sticker on the back of the keypad (also on the card in the box). Do not enter 00000: that pairs without encryption and the keypad's codes will not work.\n4. Wait until Homey confirms. The keypad resets itself if pairing does not finish within a minute; then start again from step 2."
+      }
+    },
+    "unlearnmode": {
+      "image": "{{driverAssetsPath}}/learnmode.svg",
+      "instruction": {
+        "en": "With the keypad powered, press and hold the 1 key for about three seconds until the light blinks. If Homey does not confirm the removal, use the pinhole reset button on the back of the keypad and let this dialog time out; the keypad can then be added again."
+      }
+    }
+  },
+  "settings": [
+    {
+      "type": "group",
+      "label": {
+        "en": "Security Panel behaviour"
+      },
+      "children": [
+        {
+          "id": "alarmSound",
+          "type": "dropdown",
+          "label": {
+            "en": "When the alarm sounds"
+          },
+          "value": "burglar",
+          "values": [
+            {
+              "id": "burglar",
+              "label": {
+                "en": "Burglar siren"
+              }
+            },
+            {
+              "id": "smoke",
+              "label": {
+                "en": "Smoke siren"
+              }
+            },
+            {
+              "id": "medical",
+              "label": {
+                "en": "Medical siren"
+              }
+            },
+            {
+              "id": "generic",
+              "label": {
+                "en": "Generic alarm"
+              }
+            },
+            {
+              "id": "none",
+              "label": {
+                "en": "Lights only, no siren"
+              }
+            }
+          ]
+        },
+        {
+          "id": "exitChime",
+          "type": "dropdown",
+          "label": {
+            "en": "Chime when the exit delay starts"
+          },
+          "value": "none",
+          "values": [
+            {
+              "id": "none",
+              "label": {
+                "en": "None (the keypad counts down by itself)"
+              }
+            },
+            {
+              "id": "doublebeep",
+              "label": {
+                "en": "Double beep"
+              }
+            },
+            {
+              "id": "bingbong",
+              "label": {
+                "en": "Bing bong"
+              }
+            },
+            {
+              "id": "windchimes",
+              "label": {
+                "en": "Wind chimes"
+              }
+            },
+            {
+              "id": "guitarriff",
+              "label": {
+                "en": "Guitar riff"
+              }
+            },
+            {
+              "id": "ringdefault",
+              "label": {
+                "en": "Ring default"
+              }
+            }
+          ]
+        },
+        {
+          "id": "announceExitAway",
+          "type": "checkbox",
+          "label": {
+            "en": "Announce the exit countdown when arming Away"
+          },
+          "value": true
+        },
+        {
+          "id": "announceExitHome",
+          "type": "checkbox",
+          "label": {
+            "en": "Announce the exit countdown when arming Home"
+          },
+          "value": false,
+          "hint": {
+            "en": "Only applies when an exit delay for Home is set in the app settings."
+          }
+        },
+        {
+          "id": "announceEntry",
+          "type": "checkbox",
+          "label": {
+            "en": "Announce the entry countdown (sensor tripped, time to disarm)"
+          },
+          "value": true
+        },
+        {
+          "id": "policeTriggersAlarm",
+          "type": "checkbox",
+          "label": {
+            "en": "Police emergency button sounds the alarm"
+          },
+          "value": true,
+          "hint": {
+            "en": "Fire and Medical always only fire their flow trigger."
+          }
+        },
+        {
+          "id": "useTamper",
+          "type": "checkbox",
+          "label": {
+            "en": "Report tamper (cover removed / unplugged)"
+          },
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Keypad hardware"
+      },
+      "children": [
+        {
+          "id": "announcementVolume",
+          "type": "number",
+          "label": {
+            "en": "Announcement volume"
+          },
+          "value": 7,
+          "attr": {
+            "min": 0,
+            "max": 10
+          },
+          "zwave": {
+            "index": 4,
+            "size": 1
+          }
+        },
+        {
+          "id": "keyToneVolume",
+          "type": "number",
+          "label": {
+            "en": "Key tone volume"
+          },
+          "value": 6,
+          "attr": {
+            "min": 0,
+            "max": 10
+          },
+          "zwave": {
+            "index": 5,
+            "size": 1
+          }
+        },
+        {
+          "id": "sirenVolume",
+          "type": "number",
+          "label": {
+            "en": "Siren volume"
+          },
+          "value": 10,
+          "attr": {
+            "min": 0,
+            "max": 10
+          },
+          "zwave": {
+            "index": 6,
+            "size": 1
+          }
+        },
+        {
+          "id": "proximityDetection",
+          "type": "checkbox",
+          "label": {
+            "en": "Proximity detection (wake the display when you approach)"
+          },
+          "value": true,
+          "hint": {
+            "en": "Turn this off if the keypad freezes after entering a code."
+          },
+          "zwave": {
+            "index": 15,
+            "size": 1
+          }
+        },
+        {
+          "id": "proximityTimeout",
+          "type": "number",
+          "label": {
+            "en": "Display timeout after proximity (s)"
+          },
+          "value": 5,
+          "attr": {
+            "min": 0,
+            "max": 30
+          },
+          "zwave": {
+            "index": 9,
+            "size": 1
+          }
+        },
+        {
+          "id": "statusDisplayTimeout",
+          "type": "number",
+          "label": {
+            "en": "Display timeout after status change (s)"
+          },
+          "value": 5,
+          "attr": {
+            "min": 1,
+            "max": 30
+          },
+          "zwave": {
+            "index": 11,
+            "size": 1
+          }
+        },
+        {
+          "id": "modeBrightness",
+          "type": "number",
+          "label": {
+            "en": "Security mode light brightness (%)"
+          },
+          "value": 100,
+          "attr": {
+            "min": 0,
+            "max": 100
+          },
+          "zwave": {
+            "index": 12,
+            "size": 1
+          }
+        },
+        {
+          "id": "keyBrightness",
+          "type": "number",
+          "label": {
+            "en": "Key backlight brightness (%)"
+          },
+          "value": 100,
+          "attr": {
+            "min": 0,
+            "max": 100
+          },
+          "zwave": {
+            "index": 13,
+            "size": 1
+          }
+        },
+        {
+          "id": "modeDisplay",
+          "type": "dropdown",
+          "label": {
+            "en": "Show the security mode light"
+          },
+          "value": "0",
+          "values": [
+            {
+              "id": "0",
+              "label": {
+                "en": "Only after activity (default)"
+              }
+            },
+            {
+              "id": "601",
+              "label": {
+                "en": "Always on"
+              }
+            }
+          ],
+          "zwave": {
+            "index": 22,
+            "size": 2
+          }
+        }
+      ]
+    }
+  ]
+}

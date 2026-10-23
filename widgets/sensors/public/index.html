@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style>
+    :root {
+      --sw-armed: var(--homey-color-red, #ff3b30);
+      --sw-partial: var(--homey-color-orange, #ff9500);
+      --sw-ok: var(--homey-color-green, #34c759);
+      --sw-row: rgba(120, 120, 128, .14);
+      --sw-faint: rgba(120, 120, 128, .12);
+      --sw-pill: rgba(120, 120, 128, .24);
+      --sw-radius: var(--homey-border-radius-default, 12px);
+      --sw-fs-small: var(--homey-font-size-small, 12px);
+      --sw-fs-default: var(--homey-font-size-default, 14px);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body { margin: 0; color: var(--homey-text-color, inherit); overscroll-behavior: contain; }
+    svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .wrap { display: flex; flex-direction: column; user-select: none; }
+    .wrap[data-fixed="1"] { height: 100%; }
+    .sum { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: var(--sw-fs-small); opacity: .65; padding: 2px 8px 6px; flex: 0 0 auto; }
+    .sum b { opacity: 1; font-weight: 600; }
+    .sum > span:first-child { white-space: nowrap; flex: 0 0 auto; }
+    .sum span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .sw { display: flex; flex-direction: column; gap: 0; }
+    .wrap[data-fixed="1"] .sw { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+    .zonehead { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; opacity: .5; padding: 10px 8px 2px; flex: 0 0 auto; }
+    .zonehead:first-child { padding-top: 0; }
+
+    /* icon tile | name + time | modes (optional) | state chip (fixed column) */
+    .sw-row {
+      display: grid;
+      grid-template-columns: 30px 1fr 48px 80px;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 8px;
+      border-radius: 0;
+      background: transparent;
+      font-size: var(--sw-fs-default);
+      flex: 0 0 auto;
+      position: relative;
+    }
+    .sw-row + .sw-row::before { content: ''; position: absolute; left: 8px; right: 8px; top: 0; height: 1px; background: var(--sw-faint); }
+    .sw-row.open::before, .sw-row.tampered::before, .sw-row.open + .sw-row::before, .sw-row.tampered + .sw-row::before { display: none; }
+    .sw-ico { width: 30px; height: 30px; border-radius: 9px; background: transparent; display: flex; align-items: center; justify-content: center; opacity: .8; }
+    .sw-ico svg { width: 17px; height: 17px; }
+    .sw-name { min-width: 0; line-height: 1.2; }
+    .sw-name b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sw-name small { display: block; font-size: 11.5px; opacity: .6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    /* the mode pill column keeps its width even when hidden, so the state
+       never sits against the name (same columns as the keypad widget) */
+    .sw-modes { display: flex; gap: 3px; padding: 4px 5px; border-radius: 8px; background: transparent; justify-content: center; visibility: hidden; }
+    .wrap[data-modes="1"] .sw-modes { visibility: visible; }
+    .sw-modes svg { width: 13px; height: 13px; stroke-width: 2.3; opacity: .2; }
+    .sw-modes svg.on.away { color: var(--sw-armed); opacity: 1; }
+    .sw-modes svg.on.home { color: var(--sw-partial); opacity: 1; }
+    .sw-chip { display: inline-flex; align-items: center; gap: 6px; font-size: var(--sw-fs-small); font-weight: 600; padding: 4px 0; color: #1e8f3f; white-space: nowrap; justify-self: start; }
+    .homey-dark-mode .sw-chip, body.homey-dark-mode .sw-chip { color: #4cd964; }
+    .sw-chip i { width: 12px; height: 12px; display: block; flex: 0 0 auto; position: relative; }
+    .sw-chip i::after { content: ''; position: absolute; left: 2.5px; top: 2.5px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .sw-chip.open { color: #b86a00; }
+    .homey-dark-mode .sw-chip.open, body.homey-dark-mode .sw-chip.open { color: #ffb340; }
+    .sw-chip.tamper { color: #c72c23; }
+    .homey-dark-mode .sw-chip.tamper, body.homey-dark-mode .sw-chip.tamper { color: #ff6961; }
+    .sw-chip.off { color: inherit; opacity: .6; }
+    .sw-row.open, .sw-row.tampered { border-radius: 10px; margin: 3px 0; }
+    .sw-row.open { background: rgba(255, 149, 0, .12); }
+    .sw-row.off { opacity: .5; }
+    .sw-row.tampered { background: rgba(255, 59, 48, .10); grid-template-rows: auto auto; }
+    .sw-tamper { grid-column: 2 / -1; display: flex; align-items: center; gap: 6px; font-size: var(--sw-fs-small); font-weight: 600; color: var(--sw-armed); padding-top: 2px; }
+    .sw-tamper svg { width: 13px; height: 13px; stroke-width: 2.4; }
+    @media (max-width: 299px) {
+      .sw-row { grid-template-columns: 26px 1fr 12px 70px; gap: 8px; }
+      .sw-modes { visibility: hidden !important; padding: 0; }
+    }
+    .sw-note {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 44px; padding: 8px 12px;
+      border-radius: var(--sw-radius); background: var(--sw-row);
+      font-size: var(--sw-fs-small); opacity: .75; text-align: center;
+      flex: 0 0 auto;
+    }
+    .sw-note svg { width: 18px; height: 18px; flex: 0 0 auto; }
+    .wrap[data-mode="armed"] .sw-note svg { color: var(--sw-armed); }
+    .wrap[data-mode="partially_armed"] .sw-note svg { color: var(--sw-partial); }
+    /* Slim pager: one 18px line, only when the list overflows */
+    .pager { display: none; flex: 0 0 auto; height: 18px; align-items: center; justify-content: center; gap: 4px; font-size: 11px; opacity: .6; cursor: pointer; }
+    .pager svg { width: 12px; height: 12px; stroke-width: 2.5; }
+    .pager.show { display: flex; }
+  </style>
+</head>
+<body class="homey-widget">
+  <div class="wrap" id="wrap" data-mode="disarmed">
+    <div class="sum" id="sum"></div>
+    <div class="sw" id="sw"></div>
+    <div class="pager" id="pager"></div>
+  </div>
+
+  <script>
+    (function () {
+      var H = null;
+      var settings = {};
+      var status = null;
+      var ticker = null;
+      var ROW = 50; // row + gap, for the "fit" height
+      function fixedHeight() { var h = parseInt(settings.height, 10); return h > 0 ? h : 0; } // 0 = fit to the sensors
+
+      /* shared:start */
+      /* Shared client helpers for the dashboard widgets. Homey serves each widget
+         folder on its own, so this file is inlined into every widget's index.html
+         between the "shared:start" and "shared:end" markers by `npm run widgets`.
+         Edit here, never in the widgets. The widget declares `H` (the Homey client)
+         before this block. */
+      var MOTION_LIKE = { alarm_motion: 1, alarm_occupancy: 1, alarm_presence: 1 };
+
+      // Inline icons (Feather-style strokes), coloured through CSS.
+      var ICONS = {
+        shield: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+        shieldCheck: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>',
+        homePlain: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+        unlock: '<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>',
+        bell: '<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+        bellOff: '<svg viewBox="0 0 24 24"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18.6 13A17.9 17.9 0 0 1 18 8"/><path d="M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.3-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+        x: '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+        back: '<svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+        check: '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>',
+        down: '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
+        up: '<svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>',
+        alert: '<svg viewBox="0 0 24 24"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>',
+        door: '<svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h7v18"/><path d="M14 3h3a2 2 0 0 1 2 2v16"/><circle cx="11" cy="12" r="1"/></svg>',
+        motion: '<svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1H8V6a4 4 0 0 1 4-4z"/><path d="M4 22l3-9h10l3 9"/><path d="M9 13l-1 9M15 13l1 9"/></svg>',
+        sensor: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7"/></svg>',
+        eyeOff: '<svg viewBox="0 0 24 24"><path d="M17.9 17.9A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.1-6M9.9 4.2A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.2 3.2"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+      };
+
+      /** Translation lookup for one namespace of locales/<lang>.json, with a fallback. */
+      function makeT(ns) {
+        return function (key, fallback) {
+          try {
+            var s = H.__(ns + '.' + key);
+            return (s && s !== ns + '.' + key) ? s : fallback;
+          } catch (e) { return fallback; }
+        };
+      }
+
+      /** Icon for a sensor row by capability. */
+      function iconFor(s) {
+        if (MOTION_LIKE[s.capability]) return ICONS.motion;
+        if (s.capability === 'alarm_contact') return ICONS.door;
+        return s.capability === 'alarm_tamper' ? ICONS.alert : ICONS.sensor;
+      }
+
+      // Fold each device's tamper row into its main row (same deviceId); a device
+      // that only has a tamper capability keeps its own row. Returns new objects,
+      // the status rows themselves are left alone.
+      function groupRows(all) {
+        var byDev = {}, out = [];
+        all.forEach(function (s) {
+          if (s.capability === 'alarm_tamper') return;
+          var row = Object.assign({}, s, { tamper: null });
+          out.push(row);
+          if (row.deviceId && !byDev[row.deviceId]) byDev[row.deviceId] = row;
+        });
+        all.forEach(function (s) {
+          if (s.capability !== 'alarm_tamper') return;
+          var main = s.deviceId && byDev[s.deviceId];
+          if (!main) { out.push(Object.assign({}, s, { tamper: null })); return; }
+          if (!main.tamper || (s.enabled && s.active)) main.tamper = s;
+        });
+        return out;
+      }
+      function tampered(s) { return Boolean(s.tamper && s.tamper.enabled && s.tamper.active); }
+
+      /** The zone chosen in the widget's autocomplete setting, or null for all. */
+      function zoneFilter(settings) {
+        var z = settings && settings.zone;
+        if (!z) return null;
+        var id = typeof z === 'object' ? z.id : z;
+        return id ? String(id) : null;
+      }
+
+      /** Elapsed-time texts in the two largest units: "45 s", "12 min", "3 h 10 min", "5 d 3 h". */
+      function makeElapsed(t) {
+        function elapsed(ts) {
+          var s = Math.max(0, Math.round((Date.now() - ts) / 1000));
+          var m = Math.floor(s / 60), h = Math.floor(m / 60), d = Math.floor(h / 24);
+          if (s < 60) return s + ' s';
+          if (m < 60) return m + ' ' + t('min', 'min');
+          if (h < 24) return h + ' ' + t('h', 'h') + (m % 60 ? ' ' + (m % 60) + ' ' + t('min', 'min') : '');
+          return d + ' ' + t('d', 'd') + (h % 24 ? ' ' + (h % 24) + ' ' + t('h', 'h') : '');
+        }
+        return {
+          elapsed: elapsed,
+          since: function (ts) { return t('since', 'since') + ' ' + elapsed(ts); },
+          ago: function (ts) { return Date.now() - ts < 60000 ? t('just_now', 'just now') : elapsed(ts) + ' ' + t('ago', 'ago'); },
+        };
+      }
+
+      // A slim line under a scrolling list pages through it: "v 3 more" / "^ back
+      // to top". Returns the refresh function; call it after every render.
+      function makePager(container, pagerEl, t, itemSelector) {
+        function items() { return itemSelector ? container.querySelectorAll(itemSelector) : container.children; }
+        function atEnd() { return container.scrollTop + container.clientHeight >= container.scrollHeight - 2; }
+        function update() {
+          var overflow = container.scrollHeight > container.clientHeight + 2;
+          if (!overflow) { pagerEl.classList.remove('show'); return; }
+          var list = items(), below = 0;
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].offsetTop + list[i].offsetHeight > container.scrollTop + container.clientHeight + 1) below += 1;
+          }
+          var end = atEnd();
+          pagerEl.innerHTML = (end ? ICONS.up : ICONS.down) + '<span></span>';
+          pagerEl.querySelector('span').textContent = end ? t('top', 'back to top') : below + ' ' + t('more', 'more');
+          pagerEl.classList.add('show');
+        }
+        pagerEl.addEventListener('click', function () {
+          var end = atEnd();
+          try {
+            if (end) container.scrollTo({ top: 0, behavior: 'smooth' });
+            else container.scrollBy({ top: Math.max(40, container.clientHeight - 24), behavior: 'smooth' });
+          } catch (e) { container.scrollTop = end ? 0 : container.scrollTop + container.clientHeight - 24; }
+          setTimeout(update, 350);
+        });
+        var timer = null;
+        container.addEventListener('scroll', function () { clearTimeout(timer); timer = setTimeout(update, 80); });
+        return update;
+      }
+      /* shared:end */
+      var wrap = document.getElementById('wrap'), sum = document.getElementById('sum'), sw = document.getElementById('sw'), pagerEl = document.getElementById('pager');
+
+      var t = makeT('sensors_widget');
+
+
+
+      var fmt = makeElapsed(t), sinceTxt = fmt.since, ago = fmt.ago;
+
+      function rows() {
+        var all = status && Array.isArray(status.sensors) ? status.sensors : [];
+        var zone = zoneFilter(settings);
+        return groupRows(all.filter(function (s) {
+          if (!settings.showExcluded && !s.enabled) return false;
+          if (zone && s.zone !== zone) return false;
+          return true;
+        })).sort(function (a, b) {
+          var az = a.zone || '', bz = b.zone || '';                 // grouped by zone when all zones show
+          if (!zone && az !== bz) return az.localeCompare(bz);
+          var ao = a.enabled && (a.active || tampered(a)) ? 0 : 1, bo = b.enabled && (b.active || tampered(b)) ? 0 : 1;
+          if (ao !== bo) return ao - bo;
+          var ae = a.enabled ? 0 : 1, be = b.enabled ? 0 : 1;
+          if (ae !== be) return ae - be;
+          var at = a.lastActiveAt || 0, bt = b.lastActiveAt || 0; // most recently tripped first
+          if (at !== bt) return bt - at;
+          return a.name.localeCompare(b.name);
+        });
+      }
+
+      // Fixed heights come from the settings and scroll inside; "fit" grows
+      // with the list so every sensor is visible without scrolling.
+      function setHeight(n, extra) {
+        if (fixedHeight()) return fixedHeight();
+        var h = Math.max(ROW, 30 + n * ROW + (extra || 0));
+        try { H.setHeight(h); } catch (e) {}
+        return h;
+      }
+
+      function note(icon, text) {
+        var n = document.createElement('div');
+        n.className = 'sw-note';
+        n.innerHTML = (icon || '') + '<span></span>';
+        n.querySelector('span').textContent = text;
+        sw.appendChild(n);
+      }
+
+      function render() {
+        sw.innerHTML = '';
+        sum.innerHTML = '';
+        if (!status) return;
+        wrap.setAttribute('data-mode', status.mode);
+        wrap.setAttribute('data-modes', settings.showModes ? '1' : '0');
+        wrap.setAttribute('data-fixed', fixedHeight() ? '1' : '0');
+        var hidden = settings.hideWhenArmed !== false && status.mode !== 'disarmed';
+        if (hidden) {
+          note(ICONS.eyeOff, t('hidden_armed', 'Sensor states are hidden while the alarm is armed'));
+          setHeight(1, -30);
+          setTimeout(updatePager, 0);
+          return;
+        }
+        var list = rows();
+        if (!list.length) {
+          note('', t('no_sensors', 'No sensors in this alarm yet'));
+          setHeight(1, -30);
+          setTimeout(updatePager, 0);
+          return;
+        }
+        // summary line: counts on the left, the zones on the right
+        var open = list.filter(function (s) { return s.enabled && s.active; }).length;
+        var tamp = list.filter(function (s) { return s.enabled && (tampered(s) || (s.capability === 'alarm_tamper' && s.active)); }).length;
+        var zones = [];
+        list.forEach(function (s) { if (s.zone && zones.indexOf(s.zone) < 0) zones.push(s.zone); });
+        var parts = [];
+        if (open) parts.push(open + ' ' + t('open_lc', 'open'));
+        if (tamp) parts.push(tamp + ' ' + t('tamper_lc', 'tamper'));
+        if (!open && !tamp) parts.push(t('all_closed', 'all closed'));
+        sum.innerHTML = '<span><b></b> · <span></span></span><span></span>';
+        sum.querySelector('b').textContent = list.length + ' ' + t('sensors_lc', 'sensors');
+        sum.querySelector('span > span').textContent = parts.join(' · ');
+        sum.lastChild.textContent = zoneFilter(settings) ? zoneFilter(settings) : zones.join(', ');
+
+        var showZone = !zoneFilter(settings) && zones.length > 1;
+        var lastZone = null, heads = 0;
+        list.forEach(function (s) {
+          if (showZone && (s.zone || '') !== lastZone) {
+            lastZone = s.zone || '';
+            var zh = document.createElement('div');
+            zh.className = 'zonehead';
+            zh.textContent = s.zone || t('no_zone', 'No zone');
+            sw.appendChild(zh);
+            heads += 1;
+          }
+          var row = document.createElement('div');
+          var tamp = tampered(s), tamperOnly = s.capability === 'alarm_tamper';
+          row.className = 'sw-row' + (s.enabled && s.active ? ' open' : '') + (s.enabled ? '' : ' off') + (tamp ? ' tampered' : '');
+          var motion = MOTION_LIKE[s.capability];
+          var main = !s.enabled ? t('excluded', 'Excluded')
+            : tamperOnly ? (s.active ? t('tamper', 'Tamper') : t('ok', 'OK'))
+            : s.active ? (motion ? t('motion', 'Motion') : t('open', 'Open'))
+            : (motion ? t('clear', 'Clear') : t('closed', 'Closed'));
+          var chipCls = !s.enabled ? ' off' : (tamp || (tamperOnly && s.active)) ? ' tamper' : (s.active ? ' open' : '');
+          row.innerHTML =
+            '<span class="sw-ico">' + iconFor(s) + '</span>' +
+            '<span class="sw-name"><b></b><small data-ts="' + (s.lastActiveAt || 0) + '" data-changed="' + (s.lastChangedAt || 0) + '" data-active="' + (s.active ? 1 : 0) + '"></small></span>' +
+            '<span class="sw-modes">' +
+              ICONS.shield.replace('<svg', '<svg class="away' + (s.enabled && s.modes.indexOf('armed') > -1 ? ' on' : '') + '"') +
+              ICONS.home.replace('<svg', '<svg class="home' + (s.enabled && s.modes.indexOf('partially_armed') > -1 ? ' on' : '') + '"') +
+            '</span>' +
+            '<span class="sw-chip' + chipCls + '"><i></i><span></span></span>' +
+            (tamp ? '<span class="sw-tamper">' + ICONS.alert + '<span></span></span>' : '');
+          row.querySelector('.sw-name b').textContent = s.name + (tamperOnly ? ' · ' + t('tamper', 'Tamper') : '');
+          row.querySelector('.sw-chip span').textContent = main;
+          if (tamp) row.querySelector('.sw-tamper span').textContent = t('tamper_alarm', 'Tamper alarm') + (s.tamper.lastActiveAt ? ' · ' + sinceTxt(s.tamper.lastActiveAt) : '');
+          sw.appendChild(row);
+        });
+        tick();
+        setHeight(list.length, heads * 22 + (list.filter(tampered).length * 20));
+        setTimeout(updatePager, 0);
+      }
+
+      // The time line under the name counts on its own between status pushes:
+      //   open    -> "since 2 min"      (when it opened)
+      //   closed  -> "12 min ago"       (last trip the app knows of)
+      //   closed, no trip seen yet -> "since 3 h" (closed since, from Homey's own timestamp)
+      function tick() {
+        var els = sw.querySelectorAll('.sw-name small');
+        for (var i = 0; i < els.length; i++) {
+          var trip = parseInt(els[i].getAttribute('data-ts'), 10);
+          var changed = parseInt(els[i].getAttribute('data-changed'), 10);
+          var active = els[i].getAttribute('data-active') === '1';
+          var txt = '';
+          if (active) txt = (trip || changed) ? sinceTxt(trip || changed) : '';
+          else if (trip) txt = ago(trip);
+          else if (changed) txt = sinceTxt(changed);
+          els[i].textContent = txt;
+        }
+      }
+
+      var updatePager = makePager(sw, pagerEl, t);
+
+      window.onHomeyReady = function (Homey) {
+        H = Homey;
+        try { settings = Homey.getSettings() || {}; } catch (e) { settings = {}; }
+        Homey.on('status', function (s) { status = s; render(); });
+        clearInterval(ticker);
+        ticker = setInterval(tick, 15000);
+        Homey.api('GET', '/status', {})
+          .then(function (s) { status = s; render(); })
+          .catch(function () {})
+          .then(function () { Homey.ready(fixedHeight() ? { height: fixedHeight() } : undefined); });
+      };
+    })();
+  </script>
+</body>
+</html>

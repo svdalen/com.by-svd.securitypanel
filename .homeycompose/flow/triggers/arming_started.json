@@ -1,0 +1,60 @@
+{
+  "title": {
+    "en": "Exit delay started"
+  },
+  "hint": {
+    "en": "An arm request was accepted and the exit countdown is running. Sensors that are open right now are in the Open sensors tag; they are checked again when the countdown ends."
+  },
+  "tokens": [
+    {
+      "name": "mode",
+      "type": "string",
+      "title": {
+        "en": "Mode"
+      },
+      "example": {
+        "en": "armed"
+      }
+    },
+    {
+      "name": "seconds",
+      "type": "number",
+      "title": {
+        "en": "Seconds"
+      },
+      "example": {
+        "en": "30"
+      }
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source"
+      },
+      "example": {
+        "en": "widget"
+      }
+    },
+    {
+      "name": "user",
+      "type": "string",
+      "title": {
+        "en": "User"
+      },
+      "example": {
+        "en": "Alice"
+      }
+    },
+    {
+      "name": "open_sensors",
+      "type": "string",
+      "title": {
+        "en": "Open sensors"
+      },
+      "example": {
+        "en": "Front door"
+      }
+    }
+  ]
+}

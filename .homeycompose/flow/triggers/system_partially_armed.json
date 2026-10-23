@@ -1,0 +1,30 @@
+{
+  "title": {
+    "en": "Armed home"
+  },
+  "tokens": [
+    {
+      "name": "user",
+      "type": "string",
+      "title": {
+        "en": "User"
+      },
+      "example": {
+        "en": "Alice"
+      }
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source"
+      },
+      "example": {
+        "en": "widget"
+      }
+    }
+  ],
+  "hint": {
+    "en": "The panel is now partially armed, for when people are at home."
+  }
+}

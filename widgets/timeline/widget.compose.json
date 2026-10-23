@@ -1,0 +1,109 @@
+{
+  "name": {
+    "en": "Sensor timeline"
+  },
+  "height": 300,
+  "transparent": true,
+  "settings": [
+    {
+      "id": "hideWhenArmed",
+      "type": "checkbox",
+      "title": {
+        "en": "Hide the timeline while armed"
+      },
+      "hint": {
+        "en": "Warning: everyone who can see this dashboard sees when doors opened and where people moved. Do not put this widget on the dashboard next to the alarm keypad; use it on your phone or in a private dashboard. Switch this off only if you want to follow the sensors while the alarm is armed."
+      },
+      "value": true
+    },
+    {
+      "id": "window",
+      "type": "dropdown",
+      "title": {
+        "en": "Show"
+      },
+      "value": "30",
+      "values": [
+        {
+          "id": "30",
+          "title": {
+            "en": "Last 30 changes"
+          }
+        },
+        {
+          "id": "1h",
+          "title": {
+            "en": "Last hour"
+          }
+        },
+        {
+          "id": "24h",
+          "title": {
+            "en": "Last 24 hours"
+          }
+        },
+        {
+          "id": "all",
+          "title": {
+            "en": "Everything kept (up to 200)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "height",
+      "type": "dropdown",
+      "title": {
+        "en": "Widget height"
+      },
+      "hint": {
+        "en": "The list scrolls inside the widget."
+      },
+      "value": "300",
+      "values": [
+        {
+          "id": "200",
+          "title": {
+            "en": "Small"
+          }
+        },
+        {
+          "id": "300",
+          "title": {
+            "en": "Medium"
+          }
+        },
+        {
+          "id": "420",
+          "title": {
+            "en": "Large"
+          }
+        }
+      ]
+    },
+    {
+      "id": "zone",
+      "type": "autocomplete",
+      "title": {
+        "en": "Zone"
+      },
+      "hint": {
+        "en": "Only sensors in this zone. Leave empty for all sensors of the alarm."
+      }
+    },
+    {
+      "id": "showSystem",
+      "type": "checkbox",
+      "title": {
+        "en": "Show arm, disarm and alarm markers"
+      },
+      "value": true
+    }
+  ],
+  "api": {
+    "getEvents": {
+      "method": "GET",
+      "path": "/events"
+    }
+  }
+}

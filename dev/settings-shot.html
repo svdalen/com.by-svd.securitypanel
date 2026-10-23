@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!-- Mock harness for the settings page: open with ?tab=sensors|users|devices|advanced&dark=1 -->
+<html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;background:#ececf1;font-family:-apple-system,"Segoe UI",system-ui,sans-serif}body.dark{background:#000;color:#f2f2f7}iframe{width:420px;height:1100px;border:0;background:transparent}</style></head>
+<body>
+<iframe id="f" src="../settings/index.html"></iframe>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search);
+  if(q.get('dark')==='1')document.body.classList.add('dark');
+  var store={
+    config:{exitDelay:30,exitDelayHome:0,entryDelay:30,alarmDuration:180,preArmCheck:'block',endCheckContactOnly:true},
+    sensorDefaults:{autoInclude:true,motionInPartial:false},
+    panels:[],panic:{suffix:'9'},timeline:{pending:true,alarm:true,mode:false},sirens:['s1'],
+    keypad:{pinForArm:true},security:{tileProtection:'disarm',flowDisarm:true,exitCancelNeedsCode:false},
+    leds:{devices:['l1'],colors:{armed:0,partially_armed:0.08,countdown:0.15,alarm:0,disarmed:0.33},disarmedOffAfter:20,armedOffAfter:0,brightness:1}
+  };
+  var sensors=[
+    {id:'d1:alarm_contact',deviceId:'d1',capability:'alarm_contact',name:'Front door',zone:'Hal',value:true,included:true,modes:['armed','partially_armed'],entryDelay:true,enabled:true,source:'default'},
+    {id:'d1:alarm_tamper',deviceId:'d1',capability:'alarm_tamper',name:'Front door',zone:'Hal',value:false,included:true,modes:['armed','partially_armed'],entryDelay:false,enabled:true,source:'default'},
+    {id:'d5:alarm_motion',deviceId:'d5',capability:'alarm_motion',name:'Hallway motion',zone:'Hal',value:false,included:true,modes:['armed'],entryDelay:false,enabled:true,source:'default'},
+    {id:'d2:alarm_contact',deviceId:'d2',capability:'alarm_contact',name:'Back door',zone:'Keuken',value:false,included:true,modes:['armed','partially_armed'],entryDelay:true,enabled:true,source:'override'},
+    {id:'d2:alarm_tamper',deviceId:'d2',capability:'alarm_tamper',name:'Back door',zone:'Keuken',value:false,included:true,modes:['armed','partially_armed'],entryDelay:false,enabled:true,source:'override'},
+    {id:'d3:alarm_contact',deviceId:'d3',capability:'alarm_contact',name:'Kitchen window',zone:'Keuken',value:false,included:true,modes:['armed','partially_armed'],entryDelay:false,enabled:true,source:'default'},
+    {id:'d9:alarm_contact',deviceId:'d9',capability:'alarm_contact',name:'Dishwasher leak',zone:'Keuken',value:false,included:false,modes:[],entryDelay:false,enabled:false,source:'none',safety:true},
+    {id:'d4:alarm_motion',deviceId:'d4',capability:'alarm_motion',name:'Living room motion',zone:'Woonkamer',value:false,included:true,modes:['armed'],entryDelay:false,enabled:true,source:'default'},
+    {id:'d6:alarm_contact',deviceId:'d6',capability:'alarm_contact',name:'Garage window',zone:'Garage',value:false,included:true,modes:['armed'],entryDelay:false,enabled:false,source:'override'}
+  ];
+  var users=[{id:'u1',name:'Steven',enabled:true,canArm:true,canDisarm:true,hasPin:true},{id:'u2',name:'Anna',enabled:true,canArm:true,canDisarm:true,hasPin:true},{id:'u3',name:'Cleaner',enabled:true,canArm:true,canDisarm:false,hasPin:true},{id:'u4',name:'Old tenant',enabled:false,canArm:true,canDisarm:true,hasPin:true}];
+  var keypads=[{name:'Ring Keypad',zone:'Hal',available:true,tamper:false,battery:84,alarmSound:'burglar',policeTriggersAlarm:true}];
+  var panels=[{id:'p1',name:'Ring Alarm base station',value:'disarmed'}];
+  var devices=[{id:'s1',name:'Outdoor siren',zone:'Tuin'},{id:'s2',name:'Indoor siren',zone:'Hal'},{id:'l1',name:'Hallway LED strip',zone:'Hal'},{id:'l2',name:'Living room lamp',zone:'Woonkamer'}];
+  var status={mode:q.get('mode')||'disarmed',phase:q.get('phase')||'idle',openSensors:[{id:'d1',name:'Front door'}],excludedSensors:[],alarmReason:'Front door',countdown:null};
+  var Homey={
+    ready:function(){},
+    get:function(k,cb){setTimeout(function(){cb(null,store[k])},10)},
+    set:function(k,v,cb){store[k]=v;setTimeout(function(){cb&&cb(null)},10)},
+    api:function(m,path,cb){setTimeout(function(){
+      if(path==='/status')return cb(null,status);
+      if(path==='/sensors')return cb(null,sensors);
+      if(path==='/users')return cb(null,users);
+      if(path==='/keypads')return cb(null,keypads);
+      if(path==='/panels')return cb(null,panels);
+      if(path.indexOf('/devices')===0)return cb(null,path.indexOf('light_hue')>0?devices.filter(function(d){return d.id[0]==='l'}):devices);
+      cb(null,[]);
+    },10)},
+    on:function(){},
+  };
+  var f=document.getElementById('f');
+  f.addEventListener('load',function(){
+    var w=f.contentWindow;
+    if(q.get('dark')==='1'){w.document.body.classList.add('homey-dark-mode');w.document.body.style.color='#f2f2f7';}
+    try{w.localStorage.setItem('securitypanel.tab',q.get('tab')||'alarm')}catch(e){}
+    w.onHomeyReady(Homey);
+  });
+})();
+</script>
+</body></html>

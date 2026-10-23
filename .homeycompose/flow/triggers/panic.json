@@ -1,0 +1,30 @@
+{
+  "title": {
+    "en": "A panic code was entered"
+  },
+  "hint": {
+    "en": "The user entered their code followed by the panic digits. The alarm was disarmed as usual and nothing was shown on screen; use this to notify someone silently."
+  },
+  "tokens": [
+    {
+      "name": "user",
+      "type": "string",
+      "title": {
+        "en": "User"
+      },
+      "example": {
+        "en": "Alice"
+      }
+    },
+    {
+      "name": "action",
+      "type": "string",
+      "title": {
+        "en": "Action"
+      },
+      "example": {
+        "en": "disarmed"
+      }
+    }
+  ]
+}

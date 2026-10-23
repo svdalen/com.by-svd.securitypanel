@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- stylised wall-mounted alarm panel: the app's virtual panel device -->
+  <defs>
+    <filter id="s" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity=".18"/></filter>
+  </defs>
+  <g filter="url(#s)">
+    <rect x="50" y="70" width="300" height="260" rx="24" fill="#2c2c2e"/>
+  </g>
+  <rect x="62" y="82" width="276" height="236" rx="18" fill="#1c1c1e"/>
+  <!-- screen -->
+  <rect x="80" y="100" width="240" height="130" rx="12" fill="#0b2a44"/>
+  <rect x="80" y="100" width="240" height="130" rx="12" fill="#0091ff" opacity=".18"/>
+  <!-- shield with lock on screen -->
+  <g transform="translate(150 112) scale(1.05)">
+    <path fill="#ffffff" fill-rule="evenodd" d="M50 5 L13 19 V46 C13 70 29 87 50 95 C71 87 87 70 87 46 V19 Z M50 13.5 L21 24.5 V46 C21 65.5 33.5 79 50 86.5 C66.5 79 79 65.5 79 46 V24.5 Z"/>
+    <path fill="#ffffff" d="M38 46 V36 A12 12 0 0 1 62 36 V46 H55.5 V36 A5.5 5.5 0 0 0 44.5 36 V46 Z"/>
+    <path fill="#ffffff" fill-rule="evenodd" d="M33 50 A4 4 0 0 1 37 46 H63 A4 4 0 0 1 67 50 V70 A4 4 0 0 1 63 74 H37 A4 4 0 0 1 33 70 Z M50 53.5 A4.5 4.5 0 0 0 48 62 V67 H52 V62 A4.5 4.5 0 0 0 50 53.5 Z"/>
+  </g>
+  <!-- status leds -->
+  <circle cx="110" cy="262" r="9" fill="#34c759"/>
+  <circle cx="140" cy="262" r="9" fill="#ff9500" opacity=".35"/>
+  <circle cx="170" cy="262" r="9" fill="#ff3b30" opacity=".35"/>
+  <!-- buttons -->
+  <rect x="210" y="248" width="46" height="28" rx="8" fill="#3a3a3c"/>
+  <rect x="264" y="248" width="46" height="28" rx="8" fill="#3a3a3c"/>
+  <!-- speaker grille -->
+  <g fill="#3a3a3c">
+    <circle cx="96" cy="296" r="3"/><circle cx="108" cy="296" r="3"/><circle cx="120" cy="296" r="3"/><circle cx="132" cy="296" r="3"/><circle cx="144" cy="296" r="3"/>
+  </g>
+</svg>

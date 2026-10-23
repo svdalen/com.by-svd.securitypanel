@@ -1,0 +1,64 @@
+{
+  "triggers": [
+    {
+      "id": "ring_keypad_emergency",
+      "title": { "en": "An emergency button was held" },
+      "tokens": [
+        { "name": "button", "type": "string", "title": { "en": "Button" }, "example": { "en": "police" } }
+      ]
+    },
+    {
+      "id": "ring_keypad_code",
+      "title": { "en": "A code was entered" },
+      "hint": { "en": "Fires after the Security Panel checked the code. The code itself is never exposed." },
+      "tokens": [
+        { "name": "accepted", "type": "boolean", "title": { "en": "Accepted" }, "example": { "en": "true" } },
+        { "name": "user", "type": "string", "title": { "en": "User" }, "example": { "en": "Alice" } },
+        { "name": "action", "type": "string", "title": { "en": "Action" }, "example": { "en": "armed" } }
+      ]
+    }
+  ],
+  "conditions": [],
+  "actions": [
+    {
+      "id": "ring_keypad_chime",
+      "title": { "en": "Play a chime" },
+      "titleFormatted": { "en": "Play chime [[chime]] at volume [[volume]]" },
+      "args": [
+        {
+          "name": "chime", "type": "dropdown", "title": { "en": "Chime" },
+          "values": [
+            { "id": "doublebeep", "title": { "en": "Double beep" } },
+            { "id": "bingbong", "title": { "en": "Bing bong" } },
+            { "id": "windchimes", "title": { "en": "Wind chimes" } },
+            { "id": "guitarriff", "title": { "en": "Guitar riff" } },
+            { "id": "ringdefault", "title": { "en": "Ring default" } }
+          ]
+        },
+        {
+          "name": "volume", "type": "dropdown", "title": { "en": "Volume" },
+          "values": [
+            { "id": "1", "title": { "en": "1" } }, { "id": "2", "title": { "en": "2" } }, { "id": "3", "title": { "en": "3" } },
+            { "id": "4", "title": { "en": "4" } }, { "id": "5", "title": { "en": "5" } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ring_keypad_siren",
+      "title": { "en": "Siren" },
+      "titleFormatted": { "en": "Siren [[mode]]" },
+      "args": [
+        {
+          "name": "mode", "type": "dropdown", "title": { "en": "Mode" },
+          "values": [
+            { "id": "burglar", "title": { "en": "Burglar on" } },
+            { "id": "smoke", "title": { "en": "Smoke on" } },
+            { "id": "medical", "title": { "en": "Medical on" } },
+            { "id": "off", "title": { "en": "Off" } }
+          ]
+        }
+      ]
+    }
+  ]
+}

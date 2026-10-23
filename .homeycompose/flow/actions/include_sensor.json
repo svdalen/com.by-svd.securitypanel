@@ -1,0 +1,20 @@
+{
+  "title": {
+    "en": "Include a sensor"
+  },
+  "titleFormatted": {
+    "en": "Include [[sensor]]"
+  },
+  "args": [
+    {
+      "name": "sensor",
+      "type": "autocomplete",
+      "title": {
+        "en": "Sensor"
+      },
+      "placeholder": {
+        "en": "Front door"
+      }
+    }
+  ]
+}

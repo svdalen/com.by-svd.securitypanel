@@ -1,0 +1,37 @@
+{
+  "title": {
+    "en": "The mode is"
+  },
+  "titleFormatted": {
+    "en": "The mode !{{is|is not}} [[mode]]"
+  },
+  "args": [
+    {
+      "name": "mode",
+      "type": "dropdown",
+      "title": {
+        "en": "Mode"
+      },
+      "values": [
+        {
+          "id": "disarmed",
+          "title": {
+            "en": "Disarmed"
+          }
+        },
+        {
+          "id": "armed",
+          "title": {
+            "en": "Armed"
+          }
+        },
+        {
+          "id": "partially_armed",
+          "title": {
+            "en": "Partially armed"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+test/
+*.md
+dev/
+securitypanel-src.zip
+docs/

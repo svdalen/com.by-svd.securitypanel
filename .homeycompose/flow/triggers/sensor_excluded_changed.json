@@ -1,0 +1,27 @@
+{
+  "title": {
+    "en": "A sensor was excluded or included"
+  },
+  "tokens": [
+    {
+      "name": "sensor",
+      "type": "string",
+      "title": {
+        "en": "Sensor"
+      },
+      "example": {
+        "en": "Front door"
+      }
+    },
+    {
+      "name": "excluded",
+      "type": "boolean",
+      "title": {
+        "en": "Excluded"
+      },
+      "example": {
+        "en": "true"
+      }
+    }
+  ]
+}

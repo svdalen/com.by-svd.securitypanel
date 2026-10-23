@@ -1,0 +1,17 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Alarm pending"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/countdown.svg",
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Alarm triggered, entry delay running"
+  },
+  "insightsTitleFalse": {
+    "en": "Entry delay ended"
+  }
+}

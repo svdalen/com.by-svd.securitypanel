@@ -1,0 +1,88 @@
+{
+  "title": {
+    "en": "The mode changed"
+  },
+  "titleFormatted": {
+    "en": "The mode changed to [[mode]]"
+  },
+  "hint": {
+    "en": "Fires after an exit delay has finished and the new mode is in effect. Use the dropdown to pick a specific mode."
+  },
+  "args": [
+    {
+      "name": "mode",
+      "type": "dropdown",
+      "title": {
+        "en": "Mode"
+      },
+      "values": [
+        {
+          "id": "any",
+          "title": {
+            "en": "Any"
+          }
+        },
+        {
+          "id": "disarmed",
+          "title": {
+            "en": "Disarmed"
+          }
+        },
+        {
+          "id": "armed",
+          "title": {
+            "en": "Armed"
+          }
+        },
+        {
+          "id": "partially_armed",
+          "title": {
+            "en": "Partially armed"
+          }
+        }
+      ]
+    }
+  ],
+  "tokens": [
+    {
+      "name": "mode",
+      "type": "string",
+      "title": {
+        "en": "Mode"
+      },
+      "example": {
+        "en": "armed"
+      }
+    },
+    {
+      "name": "previous_mode",
+      "type": "string",
+      "title": {
+        "en": "Previous mode"
+      },
+      "example": {
+        "en": "disarmed"
+      }
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source"
+      },
+      "example": {
+        "en": "widget"
+      }
+    },
+    {
+      "name": "user",
+      "type": "string",
+      "title": {
+        "en": "User"
+      },
+      "example": {
+        "en": "Alice"
+      }
+    }
+  ]
+}

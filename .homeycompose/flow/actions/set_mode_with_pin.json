@@ -1,0 +1,50 @@
+{
+  "title": {
+    "en": "Set the mode with a code"
+  },
+  "titleFormatted": {
+    "en": "Set the mode to [[mode]] with code [[pin]]"
+  },
+  "hint": {
+    "en": "For physical keypads: the code is verified against the users and the user name is available in the trigger tags."
+  },
+  "args": [
+    {
+      "name": "mode",
+      "type": "dropdown",
+      "title": {
+        "en": "Mode"
+      },
+      "values": [
+        {
+          "id": "disarmed",
+          "title": {
+            "en": "Disarmed"
+          }
+        },
+        {
+          "id": "armed",
+          "title": {
+            "en": "Armed"
+          }
+        },
+        {
+          "id": "partially_armed",
+          "title": {
+            "en": "Partially armed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "pin",
+      "type": "text",
+      "title": {
+        "en": "PIN"
+      },
+      "placeholder": {
+        "en": "1234"
+      }
+    }
+  ]
+}

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
+  <style>
+    /* Theme-neutral surfaces: translucent greys work on the light and the dark
+       settings background, text inherits the page colour. */
+    :root {
+      --red: #ff3b30; --orange: #ff9500; --green: #34c759; --blue: #0a84ff;
+      --key: rgba(120,120,128,.14); --key2: rgba(120,120,128,.26); --faint: rgba(120,120,128,.14);
+      --bg: #f2f2f7; --tile: #ffffff; --segon: #ffffff; --edge: rgba(120,120,128,.16); --muted: rgba(120,120,128,.95);
+      --radius: 16px; --font: -apple-system, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) { :root { --bg: #000000; --tile: #1c1c1e; --segon: #48484a; --edge: rgba(255,255,255,.1); } }
+    body.homey-dark-mode { --bg: #000000; --tile: #1c1c1e; --segon: #48484a; --edge: rgba(255,255,255,.1); }
+    html, body { background: var(--bg) !important; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 12px 12px 80px; font-family: var(--font); font-size: 14px; line-height: 1.35; max-width: 720px; }
+    h1 { font-size: 22px; letter-spacing: -.02em; margin: 6px 0 0; }
+    .hidden { display: none !important; }
+    svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ------------------------------------------------------------- header */
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 4px 10px; }
+    .pillst { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; background: rgba(52,199,89,.14); color: #1e8f3f; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .pillst i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .pillst[data-mode="armed"] { background: rgba(255,59,48,.14); color: #c72c23; }
+    .pillst[data-mode="partially_armed"] { background: rgba(255,149,0,.16); color: #b86a00; }
+    .pillst[data-phase="alarm"] { background: var(--red); color: #fff; }
+    .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 0 2px 12px; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tabs button { border: 0 !important; padding: 9px 14px !important; height: auto !important; min-height: 36px !important; line-height: 18px !important; box-sizing: border-box !important; border-radius: 999px !important; background: var(--key) !important; color: inherit !important; font: inherit !important; font-size: 13px !important; font-weight: 600 !important; white-space: nowrap; opacity: .7; cursor: pointer; width: auto !important; min-width: 0 !important; margin: 0 !important; box-shadow: none !important; }
+    .tabs button.on { background: currentColor !important; opacity: 1; }
+    .tabs button.on span { color: #fff; mix-blend-mode: difference; }
+    .panel { display: none; flex-direction: column; gap: 12px; }
+    .panel.on { display: flex; }
+
+    /* -------------------------------------------------------------- cards */
+    .card { background: var(--tile); border: 1px solid var(--edge); border-radius: var(--radius); padding: 4px 14px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    #sensorsWrap { display: flex; flex-direction: column; gap: 12px; }
+    .card h4 { margin: 10px 0 2px; font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .card .desc { font-size: 12.5px; color: var(--muted); margin: 0 0 6px; line-height: 1.45; }
+    .card .desc b { color: inherit; }
+    .srow { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 0; border-top: 1px solid var(--faint); }
+    .srow.wrap { flex-wrap: wrap; }
+    .srow > *:not(.lbl) { flex: 0 0 auto; }
+    .srow.first, .srow:first-of-type { border-top: 0; }
+    .srow .lbl { flex: 1 1 0; min-width: 140px; }
+    .srow .lbl b { display: block; font-weight: 600; }
+    .srow .lbl small { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; line-height: 1.35; }
+    .btnrow { display: flex; align-items: center; gap: 8px; padding: 10px 0 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex !important; align-items: center; justify-content: center; border: 0 !important; border-radius: 12px !important; padding: 11px 16px !important; height: auto !important; min-height: 42px !important; line-height: 20px !important; box-sizing: border-box !important; font: inherit !important; font-size: 14px !important; font-weight: 600 !important; background: var(--key) !important; color: inherit !important; cursor: pointer; width: auto !important; min-width: 0 !important; margin: 0 !important; box-shadow: none !important; text-shadow: none; }
+    .btn.primary { background: linear-gradient(180deg, #2a95ff, #0a6fd6) !important; color: #fff !important; box-shadow: 0 6px 16px rgba(10,132,255,.25) !important; }
+    .btn.wide { flex: 1 1 auto; text-align: center; }
+    .btn.danger { color: #c72c23 !important; }
+    .msg { font-size: 12.5px; margin-left: auto; }
+    .msg.ok { color: #1e8f3f; } .msg.error { color: #c72c23; }
+    .empty { font-size: 13px; color: var(--muted); padding: 10px 0; }
+
+    /* ----------------------------------------------------------- controls */
+    .switch { position: relative; display: inline-block; width: 46px; height: 28px; flex: 0 0 auto; }
+    .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .switch i { position: absolute; inset: 0; border-radius: 14px; background: var(--key2); transition: background .15s; cursor: pointer; }
+    .switch i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: left .15s; }
+    .switch input:checked + i { background: var(--green); }
+    .switch input:checked + i::after { left: 21px; }
+    .switch.sm { width: 38px; height: 23px; } .switch.sm i::after { width: 17px; height: 17px; } .switch.sm input:checked + i::after { left: 18px; }
+    .stepper { display: inline-flex; align-items: center; border-radius: 10px; background: var(--key); overflow: hidden; flex: 0 0 auto; }
+    .stepper input { width: 58px !important; min-width: 0; margin: 0 !important; height: 36px !important; min-height: 0 !important; line-height: 36px !important; border: 0 !important; box-shadow: none !important; background: transparent !important; color: inherit !important; font: inherit !important; font-weight: 600 !important; text-align: right; padding: 0 2px 0 8px !important; -moz-appearance: textfield; outline: none; }
+    .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .stepper .unit { font-size: 12px; color: var(--muted); padding-right: 8px; }
+    .stepper button { width: 34px !important; min-width: 0 !important; height: 36px !important; min-height: 0 !important; border: 0 !important; border-radius: 0 !important; border-left: 1px solid var(--faint) !important; background: transparent !important; color: inherit !important; font-size: 18px !important; line-height: 36px !important; opacity: .75; cursor: pointer; padding: 0 !important; margin: 0 !important; box-shadow: none !important; }
+    .seg { display: inline-flex; background: var(--key); border-radius: 10px; padding: 3px; gap: 2px; flex: 0 0 auto; }
+    .seg button { border: 0 !important; padding: 0 10px !important; height: 30px !important; min-height: 0 !important; line-height: 30px !important; border-radius: 8px !important; font: inherit !important; font-size: 12.5px !important; font-weight: 600 !important; opacity: .65; background: transparent !important; color: inherit !important; cursor: pointer; margin: 0 !important; width: auto !important; min-width: 0 !important; box-shadow: none !important; }
+    .seg button.on { background: var(--segon) !important; opacity: 1; box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+    /* Homey's stylesheet stretches inputs to the full width; pin ours */
+    select.sel, input.txt { border: 0 !important; border-radius: 10px !important; background: var(--key) !important; color: inherit !important; font: inherit !important; font-weight: 600 !important; padding: 0 10px !important; height: 36px !important; min-height: 0 !important; line-height: 36px !important; outline: none; margin: 0 !important; width: auto !important; min-width: 0; box-shadow: none !important; }
+    input.txt.short { width: 84px !important; text-align: center; }
+    select.sel { padding-right: 28px; }
+    .search { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 12px; background: var(--tile); border: 1px solid var(--edge); color: var(--muted); font-size: 13px; }
+    .search svg { width: 16px; height: 16px; flex: 0 0 auto; }
+    .search input { flex: 1 1 auto; border: 0 !important; background: transparent !important; color: inherit !important; font: inherit !important; font-size: 14px !important; outline: none; margin: 0 !important; padding: 0 !important; height: 24px !important; min-height: 0 !important; line-height: 24px !important; box-shadow: none !important; vertical-align: middle; }
+
+    /* ------------------------------------------------------ sensor rows */
+    .dev { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--faint); }
+    .dev.first { border-top: 0; }
+    .ico { width: 30px; height: 30px; border-radius: 9px; background: var(--faint); display: flex; align-items: center; justify-content: center; }
+    .ico svg { width: 17px; height: 17px; }
+    .ico.on { background: rgba(255,149,0,.18); color: #b86a00; }
+    .dev .nm { min-width: 0; }
+    .dev .nm b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dev .nm small { display: block; font-size: 12px; color: var(--muted); }
+    .dev .sw { display: flex; gap: 4px; align-items: center; }
+    .mt { width: 34px; height: 28px; border: 0; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--key); color: inherit; opacity: .35; cursor: pointer; padding: 0; margin: 0; min-height: 0; line-height: 0; }
+    .mt svg { width: 15px !important; height: 15px !important; stroke-width: 2.3; display: block; }
+    .mt.on { opacity: 1; }
+    .mt.on.away { background: rgba(255,59,48,.14); color: var(--red); }
+    .mt.on.home { background: rgba(255,149,0,.16); color: var(--orange); }
+    .mt.on.delay { background: rgba(10,132,255,.14); color: var(--blue); }
+    .dev.sub { padding-top: 0; border-top: 0; }
+    .dev.sub .nm b { font-size: 13px; font-weight: 500; color: var(--muted); }
+    .dev.sub .nm b::before { content: '↳ '; opacity: .6; }
+    .dev.off .nm, .dev.off .ico { opacity: .5; }
+    .dev.off .mt { opacity: .2; pointer-events: none; }
+    .tag { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 6px; border-radius: 6px; background: var(--faint); color: var(--muted); margin-left: 6px; vertical-align: 1px; }
+    .tag.blue { background: rgba(10,132,255,.14); color: #0a6fd6; }
+    .sticky { position: fixed; left: 12px; right: 12px; bottom: 12px; display: none; gap: 8px; padding: 10px; border-radius: 16px; background: var(--tile); border: 1px solid var(--edge); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0,0,0,.18); z-index: 5; max-width: 696px; }
+    .sticky.show { display: flex; }
+
+    /* ------------------------------------------------------------ users */
+    .urow { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--faint); }
+    .urow.first { border-top: 0; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; background: linear-gradient(135deg, #0a84ff, #5e5ce6); }
+    .urow .fields { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .urow .fields input { border: 0 !important; border-radius: 9px !important; background: var(--key) !important; color: inherit !important; font: inherit !important; font-size: 14px !important; padding: 0 10px !important; height: 34px !important; min-height: 0 !important; line-height: 34px !important; outline: none; width: 100% !important; margin: 0 !important; box-shadow: none !important; vertical-align: middle; }
+    .urow .fields .pinline { display: flex; gap: 6px; align-items: center; }
+    .urow .fields .pinline input { width: 120px !important; flex: 0 0 auto; }
+    .urow .fields .pinline small { font-size: 12px; color: var(--muted); }
+    .urow .side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .perm { display: inline-flex; gap: 4px; }
+    .perm span { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; background: var(--faint); color: inherit; opacity: .55; cursor: pointer; line-height: 1.3; }
+    .perm span.on { opacity: 1; background: rgba(52,199,89,.16); color: #1e8f3f; }
+    .remove { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: var(--faint); color: #c72c23; font-size: 14px; cursor: pointer; }
+    .urow.disabled .avatar { filter: grayscale(1); opacity: .6; }
+
+    /* ---------------------------------------------------- device pickers */
+    .pick { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--faint); }
+    .pick.first { border-top: 0; }
+    .pick b { display: block; font-weight: 600; }
+    .pick small { display: block; font-size: 12px; color: var(--muted); }
+    .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: rgba(52,199,89,.12); color: #1e8f3f; }
+    .chip i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .chip.bad { background: rgba(255,59,48,.14); color: #c72c23; }
+    .chip.grey { background: var(--faint); color: var(--muted); }
+    .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1px solid rgba(0,0,0,.1); }
+    .steps { counter-reset: s; }
+    .step { display: grid; grid-template-columns: 26px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--faint); font-size: 13px; }
+    .step.first { border-top: 0; }
+    .step::before { counter-increment: s; content: counter(s); width: 24px; height: 24px; border-radius: 50%; background: var(--key); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+    .step b { display: block; margin-bottom: 2px; }
+    .step span { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>Security Panel</h1>
+    <span class="pillst" id="status" data-mode="disarmed"><i></i><span id="statusText">…</span></span>
+  </div>
+  <div class="tabs" id="tabs">
+    <button data-tab="alarm" class="on"><span>Alarm</span></button>
+    <button data-tab="sensors"><span>Sensors</span></button>
+    <button data-tab="users"><span>Users</span></button>
+    <button data-tab="devices"><span>Devices</span></button>
+    <button data-tab="advanced"><span>Advanced</span></button>
+  </div>
+
+  <!-- ================================================================ ALARM -->
+  <div class="panel on" data-panel="alarm">
+    <div class="card">
+      <h4>Delays</h4>
+      <p class="desc">How long you get to leave after arming, and to disarm after coming in.</p>
+      <div class="srow first"><span class="lbl"><b>Exit delay</b><small>Countdown after Arm. 0 arms at once. A Ring Keypad shows at most 255 s on its bar.</small></span>
+        <span class="stepper"><input type="number" id="exitDelay" min="0" max="600" step="5"><span class="unit">s</span><button data-step="-5">−</button><button data-step="5">+</button></span></div>
+      <div class="srow"><span class="lbl"><b>Exit delay for Home</b><small>You stay in, so 0 arms Home at once without a countdown.</small></span>
+        <span class="stepper"><input type="number" id="exitDelayHome" min="0" max="600" step="5"><span class="unit">s</span><button data-step="-5">−</button><button data-step="5">+</button></span></div>
+      <div class="srow"><span class="lbl"><b>Entry delay</b><small>Only for sensors marked with the entry-delay clock.</small></span>
+        <span class="stepper"><input type="number" id="entryDelay" min="0" max="600" step="5"><span class="unit">s</span><button data-step="-5">−</button><button data-step="5">+</button></span></div>
+      <div class="srow"><span class="lbl"><b>Alarm duration</b><small>Sirens stop after this. 0 keeps the alarm on until disarmed or silenced.</small></span>
+        <span class="stepper"><input type="number" id="alarmDuration" min="0" max="3600" step="30"><span class="unit">s</span><button data-step="-30">−</button><button data-step="30">+</button></span></div>
+    </div>
+    <div class="card">
+      <h4>Before arming</h4>
+      <p class="desc">What happens when a sensor is still open at the end of the exit delay.</p>
+      <div class="srow first wrap"><span class="lbl"><b>Open sensors</b><small>Block arming, arm anyway with a warning trigger, or ignore.</small></span>
+        <span class="seg" data-seg="preArmCheck"><button data-v="warn">Warn</button><button data-v="block">Block</button><button data-v="off">Ignore</button></span><input type="hidden" id="preArmCheck" value="block"></div>
+      <div class="srow"><span class="lbl"><b>Only doors and windows count at the end</b><small>Motion sensors stay "active" a while after you walk past; with this on they cannot block arming at the end of the delay.</small></span>
+        <label class="switch"><input type="checkbox" id="endCheckContactOnly"><i></i></label></div>
+      <div class="btnrow"><button class="btn primary" id="saveConfig">Save</button><span class="msg" id="configMsg"></span></div>
+    </div>
+  </div>
+
+  <!-- ============================================================== SENSORS -->
+  <div class="panel" data-panel="sensors">
+    <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="text" id="sensorSearch" placeholder="Search sensors" autocomplete="off"></div>
+    <div class="card">
+      <div class="srow first"><span class="lbl"><b>Use new sensors automatically</b><small>Every door, window, motion, vibration and tamper sensor joins the alarm, also ones you add later. Water, smoke, CO, heat and gas detectors never do.</small></span>
+        <label class="switch"><input type="checkbox" id="autoInclude"><i></i></label></div>
+      <div class="srow"><span class="lbl"><b>Motion sensors also in Home mode</b><small>By default motion sensors only count in Away.</small></span>
+        <label class="switch"><input type="checkbox" id="motionInPartial"><i></i></label></div>
+      <div class="btnrow"><button class="btn" id="saveDefaults">Save defaults</button><span class="msg" id="defaultsMsg"></span></div>
+    </div>
+    <p class="desc" style="margin:0 4px">Per sensor: the switch includes it, then <span class="mt on away" style="display:inline-flex;vertical-align:middle;width:26px;height:22px"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Away, <span class="mt on home" style="display:inline-flex;vertical-align:middle;width:26px;height:22px"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span> Home and <span class="mt on delay" style="display:inline-flex;vertical-align:middle;width:26px;height:22px"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> entry delay. Rows marked <span class="tag blue">default</span> follow the defaults above; edited rows keep their own settings.</p>
+    <div id="sensorsWrap"><div class="empty">Loading…</div></div>
+    <div class="btnrow"><button class="btn" id="reloadSensors">Reload</button><button class="btn danger" id="resetSensors">Reset all to defaults</button><span class="msg" id="sensorsMsg"></span></div>
+    <div class="sticky" id="sensorsBar"><button class="btn wide" id="discardSensors">Discard</button><button class="btn primary wide" id="saveSensors">Save sensors</button></div>
+  </div>
+
+  <!-- ================================================================ USERS -->
+  <div class="panel" data-panel="users">
+    <div class="card">
+      <h4>Keypad users</h4>
+      <p class="desc">Each person has their own code of 4 to 8 digits. Codes are stored hashed and never shown again; leave the code field empty to keep it. After 5 wrong attempts a keypad locks for 30 s, doubling each time.</p>
+      <div id="usersWrap"></div>
+      <div class="btnrow"><button class="btn" id="addUser">+ Add user</button><button class="btn primary" id="saveUsers">Save users</button><span class="msg" id="usersMsg"></span></div>
+    </div>
+    <div class="card">
+      <h4>Panic code</h4>
+      <p class="desc">A user types their normal code followed by these digits. The alarm disarms as usual and nothing shows on screen, but the flow trigger <b>A panic code was entered</b> fires so you can warn someone silently. Leave empty to disable.</p>
+      <div class="srow first"><span class="lbl"><b>Panic digits after the code</b><small>One or two digits</small></span><input type="text" class="txt short" id="panicSuffix" maxlength="2" inputmode="numeric" placeholder="e.g. 9"></div>
+      <div class="btnrow"><button class="btn primary" id="savePanic">Save</button><span class="msg" id="panicMsg"></span></div>
+    </div>
+  </div>
+
+  <!-- ============================================================== DEVICES -->
+  <div class="panel" data-panel="devices">
+    <div class="card">
+      <h4>Physical keypads</h4>
+      <p class="desc">Keypads paired with this app. Codes, mode lights, delay bar, siren and emergency buttons are wired in automatically; options are in the device's settings.</p>
+      <div id="keypadsWrap"><div class="empty">Loading…</div></div>
+      <div class="steps">
+        <div class="step first"><div><b>Ring Keypad paired with this app</b><span>Add device → Security Panel → Ring Keypad. Recommended, no flows needed.</span></div></div>
+        <div class="step"><div><b>Any keypad through a flow</b><span>WHEN the keypad's "code entered" trigger → THEN Security Panel "Handle a physical keypad entry" with the code and key tags. Codes are checked here, including the panic digits.</span></div></div>
+        <div class="step"><div><b>Through the Ring Security app</b> <span class="tag">not available yet</span><span>Needs a change by that app's developer.</span></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Sirens</h4>
+      <p class="desc">Switched on when the alarm sounds and off when it ends, is silenced or disarmed. Any device with an on/off switch can be a siren.</p>
+      <div id="sirensWrap"><div class="empty">Loading…</div></div>
+      <div class="btnrow"><button class="btn primary" id="saveSirens">Save sirens</button><span class="msg" id="sirensMsg"></span></div>
+    </div>
+    <div class="card">
+      <h4>Indicator lights</h4>
+      <p class="desc">Colour lights or LED strips that show the alarm state.</p>
+      <div id="ledsWrap"><div class="empty">Loading…</div></div>
+      <h4>Colours</h4>
+      <div class="srow first"><span class="lbl"><b>Armed</b></span><select class="sel hue" id="ledArmed"></select></div>
+      <div class="srow"><span class="lbl"><b>Partially armed (Home)</b></span><select class="sel hue" id="ledPartial"></select></div>
+      <div class="srow"><span class="lbl"><b>Exit and entry countdown</b></span><select class="sel hue" id="ledCountdown"></select></div>
+      <div class="srow"><span class="lbl"><b>Alarm</b></span><select class="sel hue" id="ledAlarm"></select></div>
+      <div class="srow"><span class="lbl"><b>Disarmed</b></span><select class="sel hue" id="ledDisarmed"></select></div>
+      <h4>Timing</h4>
+      <div class="srow first"><span class="lbl"><b>Disarmed: turn off after</b><small>0 keeps the colour on</small></span><span class="stepper"><input type="number" id="ledDisarmedOff" min="0" max="3600" step="5"><span class="unit">s</span><button data-step="-5">−</button><button data-step="5">+</button></span></div>
+      <div class="srow"><span class="lbl"><b>Armed: turn off after</b><small>0 keeps the colour on</small></span><span class="stepper"><input type="number" id="ledArmedOff" min="0" max="86400" step="60"><span class="unit">s</span><button data-step="-60">−</button><button data-step="60">+</button></span></div>
+      <div class="srow"><span class="lbl"><b>Brightness</b></span><span class="stepper"><input type="number" id="ledBrightness" min="1" max="100" step="10"><span class="unit">%</span><button data-step="-10">−</button><button data-step="10">+</button></span></div>
+      <div class="btnrow"><button class="btn primary" id="saveLeds">Save lights</button><span class="msg" id="ledsMsg"></span></div>
+    </div>
+    <div class="card">
+      <h4>Linked alarm panels</h4>
+      <p class="desc">Other alarm devices on Homey that expose an alarm state, such as a Ring Alarm base station or Heimdall's switch. Their mode is kept in sync both ways. A Ring Keypad does not belong here: pair it with this app instead.</p>
+      <div id="panelsWrap"><div class="empty">Loading…</div></div>
+      <div class="btnrow"><button class="btn primary" id="savePanels">Save panels</button><span class="msg" id="panelsMsg"></span></div>
+    </div>
+  </div>
+
+  <!-- ============================================================= ADVANCED -->
+  <div class="panel" data-panel="advanced">
+    <div class="card">
+      <h4>Codes and protection</h4>
+      <p class="desc">The panel's device tile and Homey's built-in "Set state" card cannot ask for a code. Choose what they may do. For a shared tablet, log the Homey app in as a <b>Guest</b>: guests can control devices and start flows but cannot change settings. Combine that with a read-only tile and "flows need a code", and the tablet can only arm.</p>
+      <div class="srow first"><span class="lbl"><b>Arming needs a code</b><small>Keypad widget, physical keypads and the API. Disarming always needs one.</small></span><label class="switch"><input type="checkbox" id="pinForArm"><i></i></label></div>
+      <div class="srow wrap"><span class="lbl"><b>Without a code, the device tile may</b></span>
+        <span class="seg" data-seg="tileProtection"><button data-v="disarm">Arm only</button><button data-v="all">Nothing</button><button data-v="none">Arm and disarm</button></span><input type="hidden" id="tileProtection" value="disarm"></div>
+      <div class="srow"><span class="lbl"><b>Cancelling the exit countdown from a keypad needs a code</b><small>Off: the cancel key stops the countdown by itself, like most panels. Cancelling an entry countdown always needs a code.</small></span><label class="switch"><input type="checkbox" id="exitCancelNeedsCode"><i></i></label></div>
+      <div class="srow"><span class="lbl"><b>Flows may disarm, silence or bypass without a code</b><small>Off: those flow cards refuse unless they carry a code. Guests can start flows by hand, so turn this off for a guest tablet.</small></span><label class="switch"><input type="checkbox" id="flowDisarm"><i></i></label></div>
+      <div class="btnrow"><button class="btn primary" id="saveSecurity">Save</button><span class="msg" id="securityMsg"></span></div>
+    </div>
+    <div class="card">
+      <h4>Timeline</h4>
+      <p class="desc">Post these events to the Homey timeline.</p>
+      <div class="srow first"><span class="lbl"><b>Alarm pending</b><small>A sensor tripped and the entry delay runs</small></span><label class="switch"><input type="checkbox" id="tlPending"><i></i></label></div>
+      <div class="srow"><span class="lbl"><b>Alarm sounding</b></span><label class="switch"><input type="checkbox" id="tlAlarm"><i></i></label></div>
+      <div class="srow"><span class="lbl"><b>Mode changes</b><small>Armed and disarmed, with the user's name</small></span><label class="switch"><input type="checkbox" id="tlMode"><i></i></label></div>
+      <div class="btnrow"><button class="btn primary" id="saveTimeline">Save</button><span class="msg" id="timelineMsg"></span></div>
+    </div>
+  </div>
+
+  <script>
+    var H;
+    var sensors = [];
+    var panelsAvail = [], panelsSel = [];
+    var users = [];
+    var sirenDevices = [], sirensSel = [];
+    var ledDevices = [], ledCfg = {};
+
+    var HUES = [
+      { id: '', name: 'Off', c: 'transparent' }, { id: '0', name: 'Red', c: '#ff3b30' }, { id: '0.08', name: 'Orange', c: '#ff9500' }, { id: '0.15', name: 'Yellow', c: '#ffd60a' },
+      { id: '0.33', name: 'Green', c: '#34c759' }, { id: '0.5', name: 'Cyan', c: '#32ade6' }, { id: '0.62', name: 'Blue', c: '#0a84ff' }, { id: '0.78', name: 'Purple', c: '#bf5af2' }, { id: '0.9', name: 'Pink', c: '#ff375f' },
+    ];
+    var ICONS = {
+      door: '<svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h7v18"/><path d="M14 3h3a2 2 0 0 1 2 2v16"/><circle cx="11" cy="12" r="1"/></svg>',
+      motion: '<svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1H8V6a4 4 0 0 1 4-4z"/><path d="M4 22l3-9h10l3 9"/><path d="M9 13l-1 9M15 13l1 9"/></svg>',
+      sensor: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7"/></svg>',
+      alert: '<svg viewBox="0 0 24 24"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>',
+      drop: '<svg viewBox="0 0 24 24"><path d="M12 2.7l5.7 8.5a6.5 6.5 0 1 1-11.4 0z"/></svg>',
+      shield: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+      home: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+      clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    };
+    var MOTION_LIKE = { alarm_motion: 1, alarm_occupancy: 1, alarm_presence: 1 };
+
+    function $(id) { return document.getElementById(id); }
+    function flash(id, text, ok) {
+      var el = $(id); el.textContent = text; el.className = 'msg ' + (ok ? 'ok' : 'error');
+      setTimeout(function () { el.textContent = ''; }, 4000);
+    }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function initials(name) {
+      var p = String(name || '').trim().split(/\s+/).filter(Boolean);
+      if (!p.length) return '?';
+      return (p[0][0] + (p[1] ? p[1][0] : (p[0][1] || ''))).toUpperCase();
+    }
+    var AVATARS = ['linear-gradient(135deg,#0a84ff,#5e5ce6)', 'linear-gradient(135deg,#ff9f0a,#ff375f)', 'linear-gradient(135deg,#30d158,#0a84ff)', 'linear-gradient(135deg,#bf5af2,#ff375f)', 'linear-gradient(135deg,#64d2ff,#0a84ff)'];
+
+    // ------------------------------------------------------- generic controls
+    function segSet(name, value) {
+      var seg = document.querySelector('.seg[data-seg="' + name + '"]');
+      if (!seg) return;
+      seg.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === value); });
+      $(name).value = value;
+    }
+    document.addEventListener('click', function (ev) {
+      var b = ev.target.closest('.seg button');
+      if (b) { segSet(b.parentNode.getAttribute('data-seg'), b.getAttribute('data-v')); return; }
+      var st = ev.target.closest('.stepper button');
+      if (st) {
+        var input = st.parentNode.querySelector('input');
+        var step = parseInt(st.getAttribute('data-step'), 10) || 1;
+        var v = (parseInt(input.value, 10) || 0) + step;
+        var min = parseInt(input.min, 10), max = parseInt(input.max, 10);
+        if (!isNaN(min)) v = Math.max(min, v);
+        if (!isNaN(max)) v = Math.min(max, v);
+        input.value = v;
+        return;
+      }
+      var tab = ev.target.closest('#tabs button');
+      if (tab) showTab(tab.getAttribute('data-tab'));
+    });
+    function showTab(name) {
+      document.querySelectorAll('#tabs button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === name); });
+      document.querySelectorAll('.panel').forEach(function (p) { p.classList.toggle('on', p.getAttribute('data-panel') === name); });
+      $('sensorsBar').classList.toggle('show', name === 'sensors' && sensorsDirty);
+      try { localStorage.setItem('securitypanel.tab', name); } catch (e) {}
+    }
+
+    function onHomeyReady(Homey) {
+      H = Homey;
+      H.ready();
+      try { var last = localStorage.getItem('securitypanel.tab'); if (last) showTab(last); } catch (e) {}
+
+      H.get('config', function (err, cfg) {
+        cfg = cfg || {};
+        $('exitDelay').value = cfg.exitDelay != null ? cfg.exitDelay : 30;
+        $('exitDelayHome').value = cfg.exitDelayHome != null ? cfg.exitDelayHome : 0;
+        $('entryDelay').value = cfg.entryDelay != null ? cfg.entryDelay : 30;
+        $('alarmDuration').value = cfg.alarmDuration != null ? cfg.alarmDuration : 300;
+        segSet('preArmCheck', cfg.preArmCheck || 'block');
+        $('endCheckContactOnly').checked = cfg.endCheckContactOnly !== false;
+      });
+      H.get('sensorDefaults', function (err, d) {
+        d = d || {};
+        $('autoInclude').checked = d.autoInclude !== false;
+        $('motionInPartial').checked = d.motionInPartial === true;
+      });
+      H.get('panels', function (err, p) { panelsSel = p || []; loadPanels(); });
+      loadKeypads();
+      H.get('panic', function (err, p) { $('panicSuffix').value = (p && p.suffix) || ''; });
+      H.get('timeline', function (err, t) {
+        t = t || {};
+        $('tlPending').checked = t.pending !== false;
+        $('tlAlarm').checked = t.alarm !== false;
+        $('tlMode').checked = t.mode === true;
+      });
+      H.get('sirens', function (err, s) { sirensSel = s || []; loadSirens(); });
+      H.get('keypad', function (err, k) { $('pinForArm').checked = !(k && k.pinForArm === false); });
+      H.get('security', function (err, sec) {
+        segSet('tileProtection', (sec && sec.tileProtection) || 'disarm');
+        $('flowDisarm').checked = !(sec && sec.flowDisarm === false);
+        $('exitCancelNeedsCode').checked = Boolean(sec && sec.exitCancelNeedsCode);
+      });
+      H.get('leds', function (err, l) { ledCfg = l || {}; loadLeds(); });
+
+      loadSensors();
+      loadUsers();
+      refreshStatus();
+      H.on('status', renderStatus);
+      H.on('usersResult', function (r) {
+        if (!r || !r.ok) { flash('usersMsg', (r && r.error) || 'Saving users failed'); return; }
+        users = (r.users || []).map(function (u) { u.pin = ''; return u; });
+        renderUsers();
+        flash('usersMsg', 'Saved', true);
+      });
+
+      $('saveConfig').onclick = saveConfig;
+      $('saveDefaults').onclick = saveDefaults;
+      $('saveSensors').onclick = saveSensors;
+      $('discardSensors').onclick = function () { renderSensors(); };
+      $('reloadSensors').onclick = loadSensors;
+      $('resetSensors').onclick = resetSensors;
+      $('sensorSearch').oninput = filterSensors;
+      $('savePanels').onclick = savePanels;
+      $('addUser').onclick = function () { users.push({ id: null, name: '', pin: '', enabled: true, canArm: true, canDisarm: true, hasPin: false }); renderUsers(); };
+      $('saveUsers').onclick = saveUsers;
+      $('savePanic').onclick = savePanic;
+      $('saveTimeline').onclick = saveTimeline;
+      $('saveSirens').onclick = saveSirens;
+      $('saveLeds').onclick = saveLeds;
+      $('saveSecurity').onclick = function () {
+        H.set('keypad', { pinForArm: $('pinForArm').checked }, function () {});
+        H.set('security', { tileProtection: $('tileProtection').value, flowDisarm: $('flowDisarm').checked, exitCancelNeedsCode: $('exitCancelNeedsCode').checked }, function (err) { flash('securityMsg', err ? String(err) : 'Saved', !err); });
+      };
+    }
+
+    // ---------------------------------------------------------------- status
+    function refreshStatus() { H.api('GET', '/status', function (err, s) { if (!err) renderStatus(s); }); }
+    function renderStatus(s) {
+      if (!s) return;
+      var el = $('status');
+      el.setAttribute('data-mode', s.mode);
+      el.setAttribute('data-phase', s.phase);
+      var label = s.mode === 'armed' ? 'Armed' : s.mode === 'partially_armed' ? 'Armed · Home' : 'Disarmed';
+      if (s.phase === 'alarm') label = 'ALARM' + (s.alarmReason ? ' · ' + s.alarmReason : '');
+      else if (s.phase === 'entry') label = 'Alarm pending · ' + (s.countdown ? s.countdown.seconds + ' s' : '');
+      else if (s.phase === 'arming') label = 'Arming · ' + (s.countdown ? s.countdown.seconds + ' s' : '');
+      else if (s.openSensors && s.openSensors.length) label += ' · ' + s.openSensors.length + ' open';
+      $('statusText').textContent = label;
+    }
+
+    // ---------------------------------------------------------------- config
+    function saveConfig() {
+      var cfg = {
+        exitDelay: parseInt($('exitDelay').value, 10) || 0,
+        exitDelayHome: parseInt($('exitDelayHome').value, 10) || 0,
+        entryDelay: parseInt($('entryDelay').value, 10) || 0,
+        alarmDuration: parseInt($('alarmDuration').value, 10) || 0,
+        preArmCheck: $('preArmCheck').value,
+        endCheckContactOnly: $('endCheckContactOnly').checked,
+      };
+      H.set('config', cfg, function (err) { flash('configMsg', err ? String(err) : 'Saved', !err); });
+    }
+
+    // --------------------------------------------------------------- sensors
+    var sensorsDirty = false;
+    function markDirty() { sensorsDirty = true; $('sensorsBar').classList.add('show'); }
+    function clearDirty() { sensorsDirty = false; $('sensorsBar').classList.remove('show'); }
+
+    function saveDefaults() {
+      H.set('sensorDefaults', { autoInclude: $('autoInclude').checked, motionInPartial: $('motionInPartial').checked }, function (err) {
+        flash('defaultsMsg', err ? String(err) : 'Saved', !err);
+        setTimeout(loadSensors, 800);
+      });
+    }
+
+    function loadSensors() {
+      $('sensorsWrap').innerHTML = '<div class="empty">Loading…</div>';
+      H.api('GET', '/sensors', function (err, list) {
+        if (err) { $('sensorsWrap').innerHTML = '<div class="empty error">' + esc(err) + '</div>'; return; }
+        sensors = list || [];
+        renderSensors();
+      });
+    }
+
+    function sensorIcon(s) {
+      if (s.capability === 'alarm_tamper') return ICONS.alert;
+      if (MOTION_LIKE[s.capability]) return ICONS.motion;
+      if (s.capability === 'alarm_contact') return ICONS.door;
+      return s.safety ? ICONS.drop : ICONS.sensor;
+    }
+    function capLabel(s) {
+      var c = s.capability.replace('alarm_', '');
+      return c.charAt(0).toUpperCase() + c.slice(1);
+    }
+
+    // One card per zone; a device's tamper capability is an indented sub-row
+    // right under the device, with its own switches.
+    function renderSensors() {
+      clearDirty();
+      if (!sensors.length) { $('sensorsWrap').innerHTML = '<div class="empty">No devices with alarm capabilities found on this Homey.</div>'; return; }
+      var isTamper = function (s) { return s.capability === 'alarm_tamper'; };
+      var mains = sensors.filter(function (s) { return !isTamper(s); });
+      var ordered = [];
+      mains.forEach(function (m) {
+        ordered.push({ s: m, sub: false });
+        sensors.forEach(function (s) { if (isTamper(s) && s.deviceId === m.deviceId) ordered.push({ s: s, sub: true }); });
+      });
+      sensors.forEach(function (s) {
+        if (isTamper(s) && !mains.some(function (m) { return m.deviceId === s.deviceId; })) ordered.push({ s: s, sub: false });
+      });
+      // group by zone, keeping each device's sub-rows with it
+      var zones = [];
+      ordered.forEach(function (o) {
+        var z = o.sub ? zones[zones.length - 1].name : (o.s.zone || '');
+        var g = zones.find(function (x) { return x.name === z; });
+        if (!g || o.sub) { if (!g) { g = { name: z, rows: [] }; zones.push(g); } }
+        g.rows.push(o);
+      });
+      zones.sort(function (a, b) { return a.name.localeCompare(b.name); });
+
+      var html = '';
+      zones.forEach(function (g) {
+        html += '<div class="card zone" data-zone="' + esc(g.name) + '"><h4>' + (g.name ? esc(g.name) : 'No zone') + '</h4>';
+        g.rows.forEach(function (o, idx) {
+          var s = o.s, i = sensors.indexOf(s);
+          var included = s.included && s.enabled !== false;
+          var sub = o.sub ? ' ' + capLabel(s) : '';
+          html += '<div class="dev' + (idx === 0 ? ' first' : '') + (o.sub ? ' sub' : '') + (included ? '' : ' off') + '" data-i="' + i + '" data-name="' + esc((s.name + ' ' + (s.zone || '')).toLowerCase()) + '">' +
+            '<span class="ico' + (s.value === true ? ' on' : '') + '">' + sensorIcon(s) + '</span>' +
+            '<span class="nm"><b>' + (o.sub ? 'Tamper' : esc(s.name)) + (s.safety && !o.sub ? '<span class="tag">safety</span>' : '') + (s.source === 'default' && !o.sub ? '<span class="tag blue">default</span>' : '') + '</b>' +
+              (o.sub ? '' : '<small>' + capLabel(s) + (s.entryDelay ? ' · entry delay' : '') + (s.safety ? ' · never added automatically' : '') + '</small>') + '</span>' +
+            '<span class="sw">' +
+              '<label class="switch sm" title="Included"><input type="checkbox" class="m-enabled"' + (included ? ' checked' : '') + '><i></i></label>' +
+              '<span class="mt away m-armed' + (s.modes.indexOf('armed') >= 0 ? ' on' : '') + '" role="button" title="Away">' + ICONS.shield + '</span>' +
+              '<span class="mt home m-partial' + (s.modes.indexOf('partially_armed') >= 0 ? ' on' : '') + '" role="button" title="Home">' + ICONS.home + '</span>' +
+              '<span class="mt delay m-entry' + (s.entryDelay ? ' on' : '') + '" role="button" title="Entry delay">' + ICONS.clock + '</span>' +
+            '</span></div>';
+        });
+        html += '</div>';
+      });
+      $('sensorsWrap').innerHTML = html;
+      $('sensorsWrap').querySelectorAll('.mt').forEach(function (b) {
+        b.onclick = function () { b.classList.toggle('on'); markDirty(); };
+      });
+      $('sensorsWrap').querySelectorAll('.m-enabled').forEach(function (cb) {
+        cb.onchange = function () { cb.closest('.dev').classList.toggle('off', !cb.checked); markDirty(); };
+      });
+      filterSensors();
+    }
+
+    function filterSensors() {
+      var q = ($('sensorSearch').value || '').trim().toLowerCase();
+      $('sensorsWrap').querySelectorAll('.card.zone').forEach(function (card) {
+        var any = false;
+        card.querySelectorAll('.dev').forEach(function (row) {
+          var hit = !q || row.getAttribute('data-name').indexOf(q) >= 0 || card.getAttribute('data-zone').toLowerCase().indexOf(q) >= 0;
+          row.classList.toggle('hidden', !hit);
+          if (hit) any = true;
+        });
+        card.classList.toggle('hidden', !any);
+      });
+    }
+
+    function saveSensors() {
+      var rows = $('sensorsWrap').querySelectorAll('.dev[data-i]');
+      var out = [];
+      rows.forEach(function (row) {
+        var s = sensors[parseInt(row.getAttribute('data-i'), 10)];
+        var modes = [];
+        if (row.querySelector('.m-armed').classList.contains('on')) modes.push('armed');
+        if (row.querySelector('.m-partial').classList.contains('on')) modes.push('partially_armed');
+        out.push({ id: s.id, modes: modes, entryDelay: row.querySelector('.m-entry').classList.contains('on'), enabled: row.querySelector('.m-enabled').checked });
+      });
+      H.set('sensors', out, function (err) {
+        flash('sensorsMsg', err ? String(err) : 'Saved', !err);
+        if (!err) clearDirty();
+        setTimeout(loadSensors, 800);
+      });
+    }
+
+    function resetSensors() {
+      H.set('sensors', [], function (err) {
+        flash('sensorsMsg', err ? String(err) : 'Reset to defaults', !err);
+        setTimeout(loadSensors, 800);
+      });
+    }
+
+    // --------------------------------------------------------------- keypads
+    function loadKeypads() {
+      H.api('GET', '/keypads', function (err, list) {
+        if (err) { $('keypadsWrap').innerHTML = '<div class="empty error">' + esc(err) + '</div>'; return; }
+        list = list || [];
+        if (!list.length) { $('keypadsWrap').innerHTML = '<div class="empty">No keypad paired with this app yet.</div>'; return; }
+        var html = '';
+        list.forEach(function (k, i) {
+          var chip = k.available === false ? '<span class="chip bad"><i></i>unavailable</span>' : (k.tamper ? '<span class="chip bad"><i></i>tamper</span>' : '<span class="chip"><i></i>connected</span>');
+          html += '<div class="pick' + (i === 0 ? ' first' : '') + '"><span><b>' + esc(k.name) + '</b><small>' + (k.zone ? esc(k.zone) + ' · ' : '') +
+            (k.battery == null ? '' : 'battery ' + esc(k.battery) + '% · ') + 'sound ' + esc(k.alarmSound || 'burglar') + ' · police button ' + (k.policeTriggersAlarm ? 'sounds the alarm' : 'trigger only') + '</small></span>' + chip + '</div>';
+        });
+        $('keypadsWrap').innerHTML = html;
+      });
+    }
+
+    // ---------------------------------------------------------------- panels
+    function loadPanels() {
+      H.api('GET', '/panels', function (err, list) {
+        if (err) { $('panelsWrap').innerHTML = '<div class="empty error">' + esc(err) + '</div>'; return; }
+        panelsAvail = list || [];
+        if (!panelsAvail.length) { $('panelsWrap').innerHTML = '<div class="empty">No other alarm panels found on Homey.</div>'; return; }
+        var html = '';
+        panelsAvail.forEach(function (p, i) {
+          html += '<div class="pick' + (i === 0 ? ' first' : '') + '"><span><b>' + esc(p.name) + '</b><small>' + esc(p.value || '') + '</small></span>' +
+            '<label class="switch"><input type="checkbox" data-p="' + i + '"' + (panelsSel.indexOf(p.id) >= 0 ? ' checked' : '') + '><i></i></label></div>';
+        });
+        $('panelsWrap').innerHTML = html;
+      });
+    }
+    function savePanels() {
+      var sel = [];
+      $('panelsWrap').querySelectorAll('input[data-p]:checked').forEach(function (cb) { sel.push(panelsAvail[parseInt(cb.getAttribute('data-p'), 10)].id); });
+      panelsSel = sel;
+      H.set('panels', sel, function (err) { flash('panelsMsg', err ? String(err) : 'Saved', !err); });
+    }
+
+    // ----------------------------------------------------------------- users
+    function loadUsers() {
+      H.api('GET', '/users', function (err, list) {
+        if (err) { flash('usersMsg', String(err)); return; }
+        users = (list || []).map(function (u) { u.pin = ''; return u; });
+        renderUsers();
+      });
+    }
+    function renderUsers() {
+      var wrap = $('usersWrap');
+      wrap.innerHTML = '';
+      if (!users.length) { wrap.innerHTML = '<div class="empty">No users yet. Add one to use the keypad.</div>'; return; }
+      users.forEach(function (u, i) {
+        var row = document.createElement('div');
+        row.className = 'urow' + (i === 0 ? ' first' : '') + (u.enabled === false ? ' disabled' : '');
+        row.innerHTML =
+          '<span class="avatar" style="background:' + AVATARS[i % AVATARS.length] + '">' + esc(initials(u.name)) + '</span>' +
+          '<span class="fields">' +
+            '<input class="name" type="text" value="' + esc(u.name) + '" placeholder="Name">' +
+            '<span class="pinline"><input class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="' + (u.hasPin ? '••••' : 'New code') + '"><small>' + (u.hasPin ? 'Code set · leave empty to keep' : 'No code yet') + '</small></span>' +
+          '</span>' +
+          '<span class="side">' +
+            '<span class="perm"><span class="arm' + (u.canArm !== false ? ' on' : '') + '" role="button">Arm</span><span class="dis' + (u.canDisarm !== false ? ' on' : '') + '" role="button">Disarm</span></span>' +
+            '<span style="display:flex;align-items:center;gap:6px"><label class="switch sm" title="Enabled"><input type="checkbox" class="en"' + (u.enabled !== false ? ' checked' : '') + '><i></i></label><span class="remove" role="button" title="Remove">✕</span></span>' +
+          '</span>';
+        var av = row.querySelector('.avatar');
+        row.querySelector('.remove').onclick = function () { users.splice(i, 1); renderUsers(); };
+        row.querySelector('.name').oninput = function (e) { u.name = e.target.value; av.textContent = initials(u.name); };
+        row.querySelector('.pin').oninput = function (e) { u.pin = e.target.value; };
+        row.querySelector('.en').onchange = function (e) { u.enabled = e.target.checked; row.classList.toggle('disabled', !u.enabled); };
+        row.querySelector('.arm').onclick = function (e) { u.canArm = u.canArm === false; e.target.classList.toggle('on', u.canArm); };
+        row.querySelector('.dis').onclick = function (e) { u.canDisarm = u.canDisarm === false; e.target.classList.toggle('on', u.canDisarm); };
+        wrap.appendChild(row);
+      });
+    }
+    function saveUsers() {
+      var payload = users.map(function (u) {
+        var o = { id: u.id || undefined, name: u.name, enabled: u.enabled !== false, canArm: u.canArm !== false, canDisarm: u.canDisarm !== false };
+        if (u.pin) o.pin = u.pin;
+        return o;
+      });
+      H.set('usersPending', payload, function (err) {
+        if (err) flash('usersMsg', String(err));
+      });
+    }
+
+    // ----------------------------------------------------------------- panic
+    function savePanic() {
+      var v = $('panicSuffix').value.trim();
+      if (v && !/^\d{1,2}$/.test(v)) { flash('panicMsg', 'Use 1 or 2 digits'); return; }
+      H.set('panic', { suffix: v }, function (err) { flash('panicMsg', err ? String(err) : (v ? 'Saved' : 'Disabled'), !err); });
+    }
+
+    // -------------------------------------------------------------- timeline
+    function saveTimeline() {
+      H.set('timeline', { pending: $('tlPending').checked, alarm: $('tlAlarm').checked, mode: $('tlMode').checked }, function (err) {
+        flash('timelineMsg', err ? String(err) : 'Saved', !err);
+      });
+    }
+
+    // ---------------------------------------------------------------- sirens
+    function deviceList(wrapId, devices, selected, attr) {
+      if (!devices.length) { $(wrapId).innerHTML = '<div class="empty">No suitable devices found.</div>'; return; }
+      var html = '';
+      devices.forEach(function (d, i) {
+        html += '<div class="pick' + (i === 0 ? ' first' : '') + '"><span><b>' + esc(d.name) + '</b>' + (d.zone ? '<small>' + esc(d.zone) + '</small>' : '') + '</span>' +
+          '<label class="switch"><input type="checkbox" data-' + attr + '="' + i + '"' + (selected.indexOf(d.id) >= 0 ? ' checked' : '') + '><i></i></label></div>';
+      });
+      $(wrapId).innerHTML = html;
+    }
+    function selectedIds(wrapId, devices, attr) {
+      var sel = [];
+      $(wrapId).querySelectorAll('input[data-' + attr + ']:checked').forEach(function (cb) { sel.push(devices[parseInt(cb.getAttribute('data-' + attr), 10)].id); });
+      return sel;
+    }
+    function loadSirens() {
+      H.api('GET', '/devices?capabilities=onoff', function (err, list) {
+        if (err) { $('sirensWrap').innerHTML = '<div class="empty error">' + esc(err) + '</div>'; return; }
+        sirenDevices = list || [];
+        deviceList('sirensWrap', sirenDevices, sirensSel, 's');
+      });
+    }
+    function saveSirens() {
+      sirensSel = selectedIds('sirensWrap', sirenDevices, 's');
+      H.set('sirens', sirensSel, function (err) { flash('sirensMsg', err ? String(err) : 'Saved', !err); });
+    }
+
+    // ------------------------------------------------------------------ leds
+    function fillHue(id, value) {
+      var sel = $(id); sel.innerHTML = '';
+      HUES.forEach(function (h) { var o = document.createElement('option'); o.value = h.id; o.textContent = h.name; sel.appendChild(o); });
+      var v = (value === null || value === undefined) ? '' : String(value);
+      var match = HUES.some(function (h) { return h.id === v; });
+      sel.value = match ? v : '';
+    }
+    function loadLeds() {
+      var colors = ledCfg.colors || {};
+      fillHue('ledArmed', colors.armed !== undefined ? colors.armed : 0);
+      fillHue('ledPartial', colors.partially_armed !== undefined ? colors.partially_armed : 0.08);
+      fillHue('ledCountdown', colors.countdown !== undefined ? colors.countdown : 0.15);
+      fillHue('ledAlarm', colors.alarm !== undefined ? colors.alarm : 0);
+      fillHue('ledDisarmed', colors.disarmed !== undefined ? colors.disarmed : 0.33);
+      $('ledDisarmedOff').value = ledCfg.disarmedOffAfter != null ? ledCfg.disarmedOffAfter : 20;
+      $('ledArmedOff').value = ledCfg.armedOffAfter != null ? ledCfg.armedOffAfter : 0;
+      $('ledBrightness').value = Math.round((ledCfg.brightness != null ? ledCfg.brightness : 1) * 100);
+      H.api('GET', '/devices?capabilities=onoff,light_hue', function (err, list) {
+        if (err) { $('ledsWrap').innerHTML = '<div class="empty error">' + esc(err) + '</div>'; return; }
+        ledDevices = list || [];
+        deviceList('ledsWrap', ledDevices, ledCfg.devices || [], 'l');
+      });
+    }
+    function hueVal(id) { var v = $(id).value; return v === '' ? null : parseFloat(v); }
+    function saveLeds() {
+      ledCfg = {
+        devices: selectedIds('ledsWrap', ledDevices, 'l'),
+        colors: { armed: hueVal('ledArmed'), partially_armed: hueVal('ledPartial'), countdown: hueVal('ledCountdown'), alarm: hueVal('ledAlarm'), disarmed: hueVal('ledDisarmed') },
+        disarmedOffAfter: parseInt($('ledDisarmedOff').value, 10) || 0,
+        armedOffAfter: parseInt($('ledArmedOff').value, 10) || 0,
+        brightness: Math.min(1, Math.max(0.01, (parseInt($('ledBrightness').value, 10) || 100) / 100)),
+      };
+      H.set('leds', ledCfg, function (err) { flash('ledsMsg', err ? String(err) : 'Saved', !err); });
+    }
+  </script>
+</body>
+</html>

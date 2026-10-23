@@ -1,0 +1,26 @@
+{
+  "name": "nl.svdalen.securitypanel",
+  "version": "0.1.41",
+  "description": "Homey alarm system with delays, Homey sensors as detectors, PIN users and a keypad widget",
+  "main": "app.js",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "validate": "homey app validate --level publish",
+    "run": "homey app run",
+    "install-app": "homey app install",
+    "push": "homey app version patch && node dev/sync-version.js && homey app install",
+    "push:nobump": "homey app install",
+    "previews": "node dev/render-previews.js",
+    "images": "node dev/render-images.js",
+    "widgets": "node dev/build-widgets.js"
+  },
+  "dependencies": {
+    "homey-api": "^3.20.1",
+    "homey-zwavedriver": "^2.2.6"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "homey": "^4.6.0"
+  }
+}

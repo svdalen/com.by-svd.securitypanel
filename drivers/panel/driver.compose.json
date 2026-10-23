@@ -1,0 +1,34 @@
+{
+  "name": {
+    "en": "Security Panel"
+  },
+  "class": "sensor",
+  "capabilities": [
+    "homealarm_state",
+    "alarm_sounding",
+    "alarm_pending",
+    "countdown_seconds"
+  ],
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [],
+  "images": {
+    "small": "{{driverAssetsPath}}/images/small.png",
+    "large": "{{driverAssetsPath}}/images/large.png",
+    "xlarge": "{{driverAssetsPath}}/images/xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices"
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ]
+}

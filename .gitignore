@@ -1,0 +1,6 @@
+node_modules/
+env.json
+app.json
+.homeybuild/
+securitypanel-src.zip
+.claude/

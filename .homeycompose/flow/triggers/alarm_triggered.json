@@ -1,0 +1,30 @@
+{
+  "title": {
+    "en": "The alarm started sounding"
+  },
+  "tokens": [
+    {
+      "name": "sensor",
+      "type": "string",
+      "title": {
+        "en": "Sensor"
+      },
+      "example": {
+        "en": "Living room motion"
+      }
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "title": {
+        "en": "Reason"
+      },
+      "example": {
+        "en": "sensor"
+      }
+    }
+  ],
+  "hint": {
+    "en": "Fires after the entry delay, or immediately for sensors without delay. Linked sirens and keypads start at this moment."
+  }
+}

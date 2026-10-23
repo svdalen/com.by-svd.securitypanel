@@ -1,0 +1,20 @@
+{
+  "title": {
+    "en": "A sensor !{{is|is not}} excluded"
+  },
+  "titleFormatted": {
+    "en": "[[sensor]] !{{is|is not}} excluded"
+  },
+  "args": [
+    {
+      "name": "sensor",
+      "type": "autocomplete",
+      "title": {
+        "en": "Sensor"
+      },
+      "placeholder": {
+        "en": "Front door"
+      }
+    }
+  ]
+}

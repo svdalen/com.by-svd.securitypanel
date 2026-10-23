@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!-- Mock harness for the sensor timeline widget: open with ?mode=armed&zone=Hal&window=1h&height=200&system=0&dark=1 -->
+<html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font-family:-apple-system,"Segoe UI",system-ui,sans-serif;width:340px}body.homey-dark-mode{color:#f2f2f7;background:#1c1c1e}</style></head>
+<body>
+<iframe id="f" src="../widgets/timeline/public/index.html" style="width:316px;height:300px;border:0"></iframe>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search);
+  if(q.get('dark')==='1')document.body.classList.add('homey-dark-mode');
+  var now=Date.now(), m=60000;
+  var ev=[
+    {at:now-2*m,type:'sensor',id:'door',name:'Front door',active:true,capability:'alarm_contact',zone:'Hal'},
+    {at:now-9*m,type:'sensor',id:'living',name:'Living room motion',active:false,capability:'alarm_motion',zone:'Woonkamer'},
+    {at:now-10*m,type:'sensor',id:'living',name:'Living room motion',active:true,capability:'alarm_motion',zone:'Woonkamer'},
+    {at:now-25*m,type:'mode',mode:'disarmed'},
+    {at:now-26*m,type:'alarm_ended'},
+    {at:now-27*m,type:'alarm',name:'Back door',reason:'sensor'},
+    {at:now-27.5*m,type:'entry',name:'Back door'},
+    {at:now-27.8*m,type:'sensor',id:'back:t',deviceId:'d2',name:'Back door',active:true,capability:'alarm_tamper',zone:'Keuken'},
+    {at:now-28*m,type:'sensor',id:'back',name:'Back door',active:true,capability:'alarm_contact',zone:'Keuken'},
+    {at:now-8*60*m,type:'mode',mode:'armed'},
+    {at:now-9*60*m,type:'sensor',id:'door',name:'Front door',active:false,capability:'alarm_contact',zone:'Hal'},
+    {at:now-9*60*m-30000,type:'sensor',id:'door',name:'Front door',active:true,capability:'alarm_contact',zone:'Hal'},
+    {at:now-30*60*m,type:'sensor',id:'hall',name:'Hallway motion',active:false,capability:'alarm_motion',zone:'Hal'},
+    {at:now-30*60*m-40000,type:'sensor',id:'hall',name:'Hallway motion',active:true,capability:'alarm_motion',zone:'Hal'}
+  ];
+  var data={mode:q.get('mode')||'disarmed',phase:'idle',events:ev};
+  var f=document.getElementById('f');
+  f.addEventListener('load',function(){
+    var w=f.contentWindow;
+    if(q.get('dark')==='1')w.document.body.classList.add('homey-dark-mode');
+    w.onHomeyReady({
+      ready:function(o){if(o&&o.height){f.style.height=o.height+'px'}document.title='ready'},
+      getSettings:function(){return {hideWhenArmed:q.get('hide')!=='0',zone:q.get('zone')?{id:q.get('zone'),name:q.get('zone')}:null,window:q.get('window')||'30',height:q.get('height')||'300',showSystem:q.get('system')!=='0'}},
+      setHeight:function(h){f.style.height=h+'px'},
+      __:function(k){return k},on:function(){},
+      api:function(m,path){return Promise.resolve(path==='/events'?data:{});}
+    });
+  });
+})();
+</script>
+</body></html>

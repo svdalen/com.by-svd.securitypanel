@@ -1,0 +1,5 @@
+{
+  "0.1.22": {
+    "en": "First release: alarm engine with delays, keypad, sensor status and sensor timeline widgets, Ring Keypad driver, sirens and LED indicators."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "title": {
+    "en": "An invalid code was entered"
+  },
+  "tokens": [
+    {
+      "name": "reason",
+      "type": "string",
+      "title": {
+        "en": "Reason"
+      },
+      "example": {
+        "en": "invalid"
+      }
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source"
+      },
+      "example": {
+        "en": "widget"
+      }
+    }
+  ]
+}

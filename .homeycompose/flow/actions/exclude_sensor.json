@@ -1,0 +1,23 @@
+{
+  "title": {
+    "en": "Exclude a sensor"
+  },
+  "titleFormatted": {
+    "en": "Exclude [[sensor]]"
+  },
+  "hint": {
+    "en": "Bypass the sensor: it no longer blocks arming or triggers the alarm, until it is included again. Its mode assignment is kept."
+  },
+  "args": [
+    {
+      "name": "sensor",
+      "type": "autocomplete",
+      "title": {
+        "en": "Sensor"
+      },
+      "placeholder": {
+        "en": "Front door"
+      }
+    }
+  ]
+}

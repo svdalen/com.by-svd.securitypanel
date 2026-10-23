@@ -1,0 +1,277 @@
+{
+  "triggers": [
+    {
+      "id": "panel_armed",
+      "title": {
+        "en": "Armed away"
+      },
+      "tokens": [
+        {
+          "name": "user",
+          "type": "string",
+          "title": {
+            "en": "User"
+          },
+          "example": {
+            "en": "Alice"
+          }
+        },
+        {
+          "name": "source",
+          "type": "string",
+          "title": {
+            "en": "Source"
+          },
+          "example": {
+            "en": "widget"
+          }
+        }
+      ]
+    },
+    {
+      "id": "panel_partially_armed",
+      "title": {
+        "en": "Armed home"
+      },
+      "tokens": [
+        {
+          "name": "user",
+          "type": "string",
+          "title": {
+            "en": "User"
+          },
+          "example": {
+            "en": "Alice"
+          }
+        },
+        {
+          "name": "source",
+          "type": "string",
+          "title": {
+            "en": "Source"
+          },
+          "example": {
+            "en": "widget"
+          }
+        }
+      ]
+    },
+    {
+      "id": "panel_disarmed",
+      "title": {
+        "en": "Disarmed"
+      },
+      "tokens": [
+        {
+          "name": "user",
+          "type": "string",
+          "title": {
+            "en": "User"
+          },
+          "example": {
+            "en": "Alice"
+          }
+        },
+        {
+          "name": "source",
+          "type": "string",
+          "title": {
+            "en": "Source"
+          },
+          "example": {
+            "en": "widget"
+          }
+        }
+      ]
+    },
+    {
+      "id": "panel_exit_delay",
+      "title": {
+        "en": "Exit delay started"
+      },
+      "tokens": [
+        {
+          "name": "mode",
+          "type": "string",
+          "title": {
+            "en": "Mode"
+          },
+          "example": {
+            "en": "armed"
+          }
+        },
+        {
+          "name": "seconds",
+          "type": "number",
+          "title": {
+            "en": "Seconds"
+          },
+          "example": {
+            "en": "30"
+          }
+        },
+        {
+          "name": "open_sensors",
+          "type": "string",
+          "title": {
+            "en": "Open sensors"
+          },
+          "example": {
+            "en": "Front door"
+          }
+        }
+      ]
+    },
+    {
+      "id": "panel_alarm_triggered",
+      "title": {
+        "en": "The alarm was triggered"
+      },
+      "tokens": [
+        {
+          "name": "sensor",
+          "type": "string",
+          "title": {
+            "en": "Sensor"
+          },
+          "example": {
+            "en": "Front door"
+          }
+        },
+        {
+          "name": "seconds",
+          "type": "number",
+          "title": {
+            "en": "Seconds"
+          },
+          "example": {
+            "en": "30"
+          }
+        }
+      ],
+      "hint": {
+        "en": "A delayed sensor tripped and the entry countdown is running; the siren does not sound yet."
+      }
+    },
+    {
+      "id": "panel_alarm_sounding",
+      "title": {
+        "en": "The alarm started sounding"
+      },
+      "tokens": [
+        {
+          "name": "sensor",
+          "type": "string",
+          "title": {
+            "en": "Sensor"
+          },
+          "example": {
+            "en": "Living room motion"
+          }
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "title": {
+            "en": "Reason"
+          },
+          "example": {
+            "en": "sensor"
+          }
+        }
+      ]
+    },
+    {
+      "id": "panel_alarm_stopped",
+      "title": {
+        "en": "The alarm stopped sounding"
+      },
+      "tokens": [
+        {
+          "name": "reason",
+          "type": "string",
+          "title": {
+            "en": "Reason"
+          },
+          "example": {
+            "en": "disarmed"
+          }
+        },
+        {
+          "name": "user",
+          "type": "string",
+          "title": {
+            "en": "User"
+          },
+          "example": {
+            "en": "Alice"
+          }
+        }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "id": "panel_is_armed",
+      "title": {
+        "en": "!{{Is|Is not}} armed away"
+      }
+    },
+    {
+      "id": "panel_is_partially_armed",
+      "title": {
+        "en": "!{{Is|Is not}} armed home"
+      }
+    },
+    {
+      "id": "panel_is_disarmed",
+      "title": {
+        "en": "!{{Is|Is not}} disarmed"
+      }
+    },
+    {
+      "id": "panel_is_sounding",
+      "title": {
+        "en": "The alarm !{{is|is not}} sounding"
+      }
+    },
+    {
+      "id": "panel_is_triggered",
+      "title": {
+        "en": "The alarm !{{is|is not}} triggered"
+      },
+      "hint": {
+        "en": "True while the entry countdown runs."
+      }
+    }
+  ],
+  "actions": [
+    {
+      "id": "panel_arm",
+      "title": {
+        "en": "Arm away"
+      }
+    },
+    {
+      "id": "panel_partially_arm",
+      "title": {
+        "en": "Arm home"
+      }
+    },
+    {
+      "id": "panel_disarm",
+      "title": {
+        "en": "Disarm"
+      }
+    },
+    {
+      "id": "panel_silence",
+      "title": {
+        "en": "Silence the alarm"
+      },
+      "hint": {
+        "en": "Stops the siren but keeps the system armed."
+      }
+    }
+  ]
+}

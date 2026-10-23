@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!-- Mock harness for the sensor status widget: open with ?mode=armed&zone=Hal&modes=1&dark=1 -->
+<html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font-family:-apple-system,"Segoe UI",system-ui,sans-serif;width:340px}body.homey-dark-mode{color:#f2f2f7;background:#1c1c1e}</style></head>
+<body>
+<iframe id="f" src="../widgets/sensors/public/index.html" style="width:316px;height:400px;border:0"></iframe>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search);
+  if(q.get('dark')==='1')document.body.classList.add('homey-dark-mode');
+  var now=Date.now();
+  var sensors=[
+    {id:'d1:alarm_contact',deviceId:'d1',name:'Front door',capability:'alarm_contact',modes:['armed','partially_armed'],enabled:true,active:true,zone:'Hal',lastActiveAt:now-130000},
+    {id:'d1:alarm_tamper',deviceId:'d1',name:'Front door',capability:'alarm_tamper',modes:['armed','partially_armed'],enabled:true,active:false,zone:'Hal',lastActiveAt:null},
+    {id:'d2:alarm_contact',deviceId:'d2',name:'Back door',capability:'alarm_contact',modes:['armed','partially_armed'],enabled:true,active:false,zone:'Keuken',lastActiveAt:now-3*3600000-600000},
+    {id:'d2:alarm_tamper',deviceId:'d2',name:'Back door',capability:'alarm_tamper',modes:['armed','partially_armed'],enabled:true,active:true,zone:'Keuken',lastActiveAt:now-40000},
+    {id:'d3:alarm_contact',deviceId:'d3',name:'Kitchen window',capability:'alarm_contact',modes:['armed','partially_armed'],enabled:true,active:false,zone:'Keuken',lastActiveAt:null,lastChangedAt:now-5*86400000-3*3600000},
+    {id:'d4:alarm_motion',deviceId:'d4',name:'Living room motion',capability:'alarm_motion',modes:['armed'],enabled:true,active:false,zone:'Woonkamer',lastActiveAt:now-25*60000},
+    {id:'d5:alarm_motion',deviceId:'d5',name:'Hallway motion',capability:'alarm_motion',modes:['armed'],enabled:true,active:false,zone:'Hal',lastActiveAt:now-2*86400000-5*3600000},
+    {id:'d6:alarm_contact',deviceId:'d6',name:'Garage window',capability:'alarm_contact',modes:['armed'],enabled:false,active:false,zone:'Garage',lastActiveAt:null},
+    {id:'d7:alarm_contact',deviceId:'d7',name:'Attic hatch',capability:'alarm_contact',modes:['armed'],enabled:true,active:false,zone:'Zolder',lastActiveAt:null},
+    {id:'d8:alarm_motion',deviceId:'d8',name:'Office motion',capability:'alarm_motion',modes:['armed'],enabled:true,active:false,zone:'Kantoor',lastActiveAt:null},
+    {id:'d9:alarm_contact',deviceId:'d9',name:'Bedroom window',capability:'alarm_contact',modes:['armed'],enabled:true,active:false,zone:'Slaapkamer',lastActiveAt:null}
+  ];
+  var status={mode:q.get('mode')||'disarmed',phase:'idle',sensors:sensors};
+  var f=document.getElementById('f');
+  f.addEventListener('load',function(){
+    var w=f.contentWindow;
+    if(q.get('dark')==='1')w.document.body.classList.add('homey-dark-mode');
+    w.onHomeyReady({
+      ready:function(o){if(o&&o.height){f.style.height=o.height+'px'}document.title='ready'},
+      getSettings:function(){return {hideWhenArmed:q.get('hide')!=='0',zone:q.get('zone')?{id:q.get('zone'),name:q.get('zone')}:null,showModes:q.get('modes')==='1',showExcluded:q.get('excluded')==='1',height:q.get('height')||'420'}},
+      setHeight:function(h){f.style.height=h+'px';document.title='h'+h},
+      __:function(k){return k},on:function(){},
+      api:function(m,path){return Promise.resolve(path==='/status'?status:{});}
+    });
+  });
+})();
+</script>
+</body></html>

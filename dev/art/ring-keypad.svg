@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- stylised illustration of a Ring-style alarm keypad, drawn for this app -->
+  <defs>
+    <filter id="s" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity=".18"/></filter>
+  </defs>
+  <g filter="url(#s)">
+    <rect x="95" y="40" width="210" height="320" rx="22" fill="#f4f4f6" stroke="#d6d6db" stroke-width="2"/>
+  </g>
+  <!-- light bar -->
+  <rect x="120" y="58" width="160" height="6" rx="3" fill="#dcdce1"/>
+  <rect x="120" y="58" width="96" height="6" rx="3" fill="#3b82f6"/>
+  <!-- mode buttons: disarm, home, away -->
+  <g>
+    <rect x="118" y="76" width="50" height="38" rx="8" fill="#ffffff" stroke="#d6d6db"/>
+    <rect x="175" y="76" width="50" height="38" rx="8" fill="#ffffff" stroke="#d6d6db"/>
+    <rect x="232" y="76" width="50" height="38" rx="8" fill="#ffffff" stroke="#d6d6db"/>
+    <!-- disarm: open padlock -->
+    <g fill="none" stroke="#34c759" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="135" y="93" width="16" height="12" rx="2.5"/><path d="M138 93v-4a5 5 0 0 1 9.5-2"/>
+    </g>
+    <!-- home: house -->
+    <g fill="none" stroke="#ff9500" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M190 97l10-8 10 8v9h-20z"/>
+    </g>
+    <!-- away: shield -->
+    <g fill="none" stroke="#ff3b30" stroke-width="3.5" stroke-linejoin="round">
+      <path d="M257 86l9 3.5v6c0 5-4 8.5-9 10.5-5-2-9-5.5-9-10.5v-6z"/>
+    </g>
+  </g>
+  <!-- number keys -->
+  <g fill="#ffffff" stroke="#d6d6db">
+    <rect x="118" y="128" width="50" height="40" rx="8"/><rect x="175" y="128" width="50" height="40" rx="8"/><rect x="232" y="128" width="50" height="40" rx="8"/>
+    <rect x="118" y="176" width="50" height="40" rx="8"/><rect x="175" y="176" width="50" height="40" rx="8"/><rect x="232" y="176" width="50" height="40" rx="8"/>
+    <rect x="118" y="224" width="50" height="40" rx="8"/><rect x="175" y="224" width="50" height="40" rx="8"/><rect x="232" y="224" width="50" height="40" rx="8"/>
+    <rect x="118" y="272" width="50" height="40" rx="8"/><rect x="175" y="272" width="50" height="40" rx="8"/><rect x="232" y="272" width="50" height="40" rx="8"/>
+  </g>
+  <g fill="#2c2c2e" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" text-anchor="middle">
+    <text x="143" y="155">1</text><text x="200" y="155">2</text><text x="257" y="155">3</text>
+    <text x="143" y="203">4</text><text x="200" y="203">5</text><text x="257" y="203">6</text>
+    <text x="143" y="251">7</text><text x="200" y="251">8</text><text x="257" y="251">9</text>
+    <text x="200" y="299">0</text>
+  </g>
+  <!-- cancel and check -->
+  <g fill="none" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M136 285l14 14M150 285l-14 14" stroke="#8e8e93"/>
+    <path d="M248 293l6 6 12-13" stroke="#34c759"/>
+  </g>
+  <!-- emergency buttons strip -->
+  <g>
+    <circle cx="143" cy="336" r="7" fill="#ff3b30" opacity=".85"/>
+    <circle cx="200" cy="336" r="7" fill="#ff9500" opacity=".85"/>
+    <circle cx="257" cy="336" r="7" fill="#3b82f6" opacity=".85"/>
+  </g>
+</svg>

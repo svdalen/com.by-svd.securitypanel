@@ -1,0 +1,40 @@
+{
+  "title": {
+    "en": "Armed while sensors were open"
+  },
+  "tokens": [
+    {
+      "name": "mode",
+      "type": "string",
+      "title": {
+        "en": "Mode"
+      },
+      "example": {
+        "en": "armed"
+      }
+    },
+    {
+      "name": "sensors",
+      "type": "string",
+      "title": {
+        "en": "Sensors"
+      },
+      "example": {
+        "en": "Front door"
+      }
+    },
+    {
+      "name": "stage",
+      "type": "string",
+      "title": {
+        "en": "Stage"
+      },
+      "example": {
+        "en": "end"
+      }
+    }
+  ],
+  "hint": {
+    "en": "With the open-sensor policy set to warn, the system armed although sensors were still open at the end of the exit delay."
+  }
+}
