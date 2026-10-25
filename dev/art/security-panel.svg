@@ -1,30 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <!-- stylised wall-mounted alarm panel: the app's virtual panel device -->
+  <!-- Wall-mounted alarm panel, the app's virtual panel device: angled from the right with a visible side, shading and a soft shadow. -->
   <defs>
-    <filter id="s" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity=".18"/></filter>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3a3f"/><stop offset="1" stop-color="#1f1f23"/></linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b4f8a"/><stop offset="1" stop-color="#0b2d57"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".18"/><stop offset=".5" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>
   </defs>
-  <g filter="url(#s)">
-    <rect x="50" y="70" width="300" height="260" rx="24" fill="#2c2c2e"/>
-  </g>
-  <rect x="62" y="82" width="276" height="236" rx="18" fill="#1c1c1e"/>
-  <!-- screen -->
-  <rect x="80" y="100" width="240" height="130" rx="12" fill="#0b2a44"/>
-  <rect x="80" y="100" width="240" height="130" rx="12" fill="#0091ff" opacity=".18"/>
-  <!-- shield with lock on screen -->
-  <g transform="translate(150 112) scale(1.05)">
-    <path fill="#ffffff" fill-rule="evenodd" d="M50 5 L13 19 V46 C13 70 29 87 50 95 C71 87 87 70 87 46 V19 Z M50 13.5 L21 24.5 V46 C21 65.5 33.5 79 50 86.5 C66.5 79 79 65.5 79 46 V24.5 Z"/>
-    <path fill="#ffffff" d="M38 46 V36 A12 12 0 0 1 62 36 V46 H55.5 V36 A5.5 5.5 0 0 0 44.5 36 V46 Z"/>
-    <path fill="#ffffff" fill-rule="evenodd" d="M33 50 A4 4 0 0 1 37 46 H63 A4 4 0 0 1 67 50 V70 A4 4 0 0 1 63 74 H37 A4 4 0 0 1 33 70 Z M50 53.5 A4.5 4.5 0 0 0 48 62 V67 H52 V62 A4.5 4.5 0 0 0 50 53.5 Z"/>
-  </g>
-  <!-- status leds -->
-  <circle cx="110" cy="262" r="9" fill="#34c759"/>
-  <circle cx="140" cy="262" r="9" fill="#ff9500" opacity=".35"/>
-  <circle cx="170" cy="262" r="9" fill="#ff3b30" opacity=".35"/>
-  <!-- buttons -->
-  <rect x="210" y="248" width="46" height="28" rx="8" fill="#3a3a3c"/>
-  <rect x="264" y="248" width="46" height="28" rx="8" fill="#3a3a3c"/>
-  <!-- speaker grille -->
-  <g fill="#3a3a3c">
-    <circle cx="96" cy="296" r="3"/><circle cx="108" cy="296" r="3"/><circle cx="120" cy="296" r="3"/><circle cx="132" cy="296" r="3"/><circle cx="144" cy="296" r="3"/>
+  <!-- shadow on the wall -->
+  <ellipse cx="206" cy="318" rx="150" ry="20" fill="#000" opacity=".18" filter="url(#shadow)"/>
+  <!-- top face -->
+  <path d="M78 110 L320 82 L336 72 L94 100 Z" fill="#4a4a52"/>
+  <!-- side face -->
+  <path d="M320 82 L336 72 L336 252 L320 262 Z" fill="#2a2a2f"/>
+  <!-- front face, skewed to show the angle -->
+  <g transform="translate(60 110) skewY(-6)">
+    <rect x="0" y="0" width="260" height="180" rx="18" fill="url(#body)" stroke="#111114" stroke-width="1.5"/>
+    <path d="M18 2 H242" stroke="#6e6e75" stroke-width="1.5" opacity=".7"/>
+    <!-- screen -->
+    <rect x="22" y="20" width="216" height="104" rx="10" fill="url(#screen)"/>
+    <rect x="22" y="20" width="216" height="104" rx="10" fill="url(#glass)"/>
+    <g fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(112 44) scale(1.5)">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><rect x="8" y="10" width="8" height="7" rx="1.5"/><path d="M10 10V8a2 2 0 0 1 4 0v2"/>
+    </g>
+    <!-- status lights -->
+    <circle cx="36" cy="150" r="5" fill="#34c759"/><circle cx="54" cy="150" r="5" fill="#ff9500" opacity=".35"/><circle cx="72" cy="150" r="5" fill="#ff3b30" opacity=".35"/>
+    <!-- buttons -->
+    <rect x="150" y="140" width="40" height="20" rx="6" fill="#4a4a50"/>
+    <rect x="198" y="140" width="40" height="20" rx="6" fill="#4a4a50"/>
+    <!-- speaker grille -->
+    <g fill="#55555c"><circle cx="30" cy="168" r="1.6"/><circle cx="38" cy="168" r="1.6"/><circle cx="46" cy="168" r="1.6"/><circle cx="54" cy="168" r="1.6"/><circle cx="62" cy="168" r="1.6"/></g>
   </g>
 </svg>

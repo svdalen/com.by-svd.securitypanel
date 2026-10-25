@@ -1,9 +1,8 @@
 'use strict';
-// Renders the real widgets with headless Edge/Chrome:
-//  - widgets/<id>/preview-light.png and preview-dark.png (1024x1024,
-//    transparent, the widget as a dashboard tile) for the App Store
-//  - dev/art/widget-light.png and widget-dark.png, embedded in the app
-//    images by dev/render-images.js
+// Renders the real keypad widget with headless Edge/Chrome into
+// dev/art/widget-light.png and widget-dark.png, which dev/render-images.js
+// embeds in the app images. (Store widget previews are drawn as simplified
+// shapes by render-images.js, as the App Store guideline asks.)
 // Usage: npm run previews   (then npm run images for the app images)
 const { execFileSync } = require('child_process');
 const fs = require('fs');
@@ -24,13 +23,6 @@ if (!browser) throw new Error('No Edge/Chrome found for headless rendering');
 const pageUrl = file => `file:///${path.join(root, 'dev', file).replace(/\\/g, '/')}`;
 
 const shots = [
-  // store previews: the tile on a transparent 512x512 page, rendered at 2x
-  { out: 'widgets/keypad/preview-light.png', page: 'preview-shot.html', query: 'widget=keypad&state=disarmed', size: [512, 512] },
-  { out: 'widgets/keypad/preview-dark.png', page: 'preview-shot.html', query: 'widget=keypad&state=armed&dark=1', size: [512, 512] },
-  { out: 'widgets/sensors/preview-light.png', page: 'preview-shot.html', query: 'widget=sensors', size: [512, 512] },
-  { out: 'widgets/sensors/preview-dark.png', page: 'preview-shot.html', query: 'widget=sensors&dark=1', size: [512, 512] },
-  { out: 'widgets/timeline/preview-light.png', page: 'preview-shot.html', query: 'widget=timeline&window=all', size: [512, 512] },
-  { out: 'widgets/timeline/preview-dark.png', page: 'preview-shot.html', query: 'widget=timeline&window=all&dark=1', size: [512, 512] },
   // the keypad on its own, for the app images
   { out: 'dev/art/widget-light.png', page: 'widget-shot.html', query: 'state=disarmed&w=400&h=420', size: [416, 428] },
   { out: 'dev/art/widget-dark.png', page: 'widget-shot.html', query: 'state=armed&dark=1&w=400&h=420', size: [416, 428] },

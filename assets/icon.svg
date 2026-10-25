@@ -1,7 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- shield outline (ring) -->
-  <path fill-rule="evenodd" d="M50 5 L13 19 V46 C13 70 29 87 50 95 C71 87 87 70 87 46 V19 Z M50 13.5 L21 24.5 V46 C21 65.5 33.5 79 50 86.5 C66.5 79 79 65.5 79 46 V24.5 Z"/>
-  <!-- padlock, centred in the shield's visual middle -->
-  <path d="M38 46 V36 A12 12 0 0 1 62 36 V46 H55.5 V36 A5.5 5.5 0 0 0 44.5 36 V46 Z"/>
-  <path fill-rule="evenodd" d="M33 50 A4 4 0 0 1 37 46 H63 A4 4 0 0 1 67 50 V70 A4 4 0 0 1 63 74 H37 A4 4 0 0 1 33 70 Z M50 53.5 A4.5 4.5 0 0 0 48 62 V67 H52 V62 A4.5 4.5 0 0 0 50 53.5 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" width="960" height="960">
+  <!-- App icon: shield with a lock. Line drawing on the full 960 canvas, no fills, transparent background. -->
+  <g fill="none" stroke="#000" stroke-width="52" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M480 56 L146 182 V446 C146 676 300 848 480 920 C660 848 814 676 814 446 V182 Z"/>
+    <rect x="336" y="468" width="288" height="226" rx="44"/>
+    <path d="M396 468 V392 a84 84 0 0 1 168 0 V468"/>
+  </g>
+  <circle cx="480" cy="556" r="38" fill="#000"/>
+  <path d="M456 556 h48 l14 72 h-76 z" fill="#000"/>
 </svg>
